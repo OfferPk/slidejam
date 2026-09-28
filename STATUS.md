@@ -1,33 +1,39 @@
 # SlideJam — STATUS
 
-**Status:** READY_FOR_QA  
-**Updated:** 2026-09-28T18:34:28+05:00 (PKT)  
+**Status:** SHIPPED  
+**Updated:** 2026-09-28T18:39:00+05:00 (PKT)  
 **Version:** 0.1.0  
 **Project ID:** `proj_slidejam_001`  
 **Path:** `/workspace/factory/projects/slidejam`  
-**Source SHA:** `19bf0793c0ae14772160825409e02605f344a061` (`19bf079`)
-**Pages base:** `/slidejam/`
+**Release source SHA:** `19bf0793c0ae14772160825409e02605f344a061` (`19bf079`, not amended)  
+**Release tip:** `39bc276` + release-prep commit  
+**Pages:** https://offerpk.github.io/slidejam/
 
 ## Gates
 
 | Gate | Result |
 |------|--------|
-| QA | pending |
-| Security | pending |
+| QA | **PASS** — report: `QA-REPORT.md` |
+| Security | **PASS_WITH_NOTES** — clear to ship; no blockers; report: `SECURITY-REPORT.md` |
 | `npm test` | **14/14 passed** |
 | `npm run build` | **green** (Vite + TypeScript + PWA; base `/slidejam/`) |
 
-## Scope shipped (MVP)
+## v0.1.0 release
 
-- Slide-to-exit engine (NOT GlowGrid tray/row-clear; NOT TubeSort)
-- 50 BFS-validated JSON levels, undo, hint (1 free then rewarded stub), level select
-- localStorage unlock / mute / adsRemoved
-- Ads stubs: interstitial (restart/win), rewarded hint, remove-ads
-- Canvas soft candy / jam jars theme (original)
-- PWA offline shell
-- README + GUIDE-roman-urdu.md + CHANGELOG 0.1.0
+SlideJam MVP: axis-locked slide-to-exit engine, 50 BFS-validated levels, undo and hint, Home / levels / play / win screens, progress persistence, ads stubs, PWA offline shell, README, and Roman Urdu guide.
+
+Dual-clear: QA PASS + Security PASS_WITH_NOTES. Security notes are non-blocking (local progress range hardening, `.env*` ignore hygiene, dev-only Vitest audit findings, and host CSP guidance). No security code edits were made.
+
+## Deployment
+
+- Repository: https://github.com/OfferPk/slidejam
+- Release: https://github.com/OfferPk/slidejam/releases/tag/v0.1.0
+- GitHub Pages base: `/slidejam/`
+- Deployment branch: `gh-pages`
+- `.nojekyll`: included for Pages
 
 ## Notes
 
-- No git push until QA/Security gates
-- Standby FAIL-only for follow-ups
+- Original jam-jar theme; slide-to-exit mechanics are not GlowGrid or TubeSort.
+- No real AdMob or IAP keys; ads and remove-ads are stubs.
+- Keep `base: '/slidejam/'` in `vite.config.ts`.
