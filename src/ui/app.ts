@@ -4,12 +4,12 @@
  */
 import {
   axisAllows,
-  cloneBoard,
   hintMove,
   isWon,
   loadBoard,
   slideBlock,
 } from '../game/engine';
+import { UndoHistory } from '../game/history';
 import { getBoardKeyboardAction } from './keyboard';
 import { getPointerSlideAction } from './pointer';
 import {
@@ -44,7 +44,7 @@ export function mountApp(root: HTMLElement): void {
   let screen: Screen = 'home';
   let levelId = 1;
   let board: BoardState | null = null;
-  let undoStack: BoardState[] = [];
+  const undoHistory = new UndoHistory();
   let selectedId: string | null = null;
   let hintId: string | null = null;
   let freeHintsLeft = 1;
@@ -237,7 +237,7 @@ export function mountApp(root: HTMLElement): void {
     if (!def) return;
     levelId = id;
     board = loadBoard(def);
-    undoStack = [];
+    undoHistory.clear();
     selectedId = null;
     hintId = null;
     freeHintsLeft = 1;
@@ -423,10 +423,10 @@ export function mountApp(root: HTMLElement): void {
   async function moveBlock(id: string, dir: Dir, announce = false): Promise<void> {
     if (!board || sliding) return;
     sliding = true;
-    undoStack.push(cloneBoard(board));
+    undoHistory.push(board, selectedId);
     const result = slideBlock(board, id, dir);
     if (result.moved === 0) {
-      undoStack.pop();
+      undoHistory.pop();
       selectedId = id;
       showToast('Blocked');
       sliding = false;
@@ -484,11 +484,17 @@ export function mountApp(root: HTMLElement): void {
   }
 
   function doUndo(): void {
-    if (!board || undoStack.length === 0) {
+    if (!board) {
       showToast('Nothing to undo');
       return;
     }
-    board = undoStack.pop()!;
+    const previous = undoHistory.pop();
+    if (!previous) {
+      showToast('Nothing to undo');
+      return;
+    }
+    board = previous.board;
+    selectedId = previous.selectedId;
     hintId = null;
     showToast('Undo');
   }
