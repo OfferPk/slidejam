@@ -18,7 +18,7 @@ import {
   unlockLevel,
   type PersistData,
 } from '../game/persist';
-import type { BoardState, Dir } from '../game/types';
+import type { BlockState, BoardState, ColorId, Dir } from '../game/types';
 import { LEVEL_COUNT, getLevel } from '../levels/index';
 import {
   computeLayout,
@@ -38,6 +38,14 @@ import {
 type Screen = 'home' | 'levels' | 'play' | 'win';
 
 const SWIPE_THRESHOLD = 24;
+const COLOR_NAMES: Record<ColorId, string> = {
+  R: 'Red',
+  G: 'Green',
+  B: 'Blue',
+  Y: 'Yellow',
+  P: 'Purple',
+  O: 'Orange',
+};
 
 export function mountApp(root: HTMLElement): void {
   let persist: PersistData = loadPersist();
@@ -329,14 +337,21 @@ export function mountApp(root: HTMLElement): void {
     const canvas = document.createElement('canvas');
     canvas.setAttribute('role', 'group');
     canvas.setAttribute('aria-label', `Level ${levelId} puzzle board`);
-    canvas.setAttribute('aria-describedby', 'board-help');
+    canvas.setAttribute('aria-describedby', 'board-help jar-descriptions');
     canvas.tabIndex = 0;
     wrap.append(canvas);
     const help = div('play-help');
     help.id = 'board-help';
     help.textContent =
       'Tap or click a jar, then swipe or drag along its arrow. The board receives focus when a level opens. Press Enter to cycle jars, then use the arrow keys; Ctrl/⌘+Z undoes a move.';
-    el.play.append(wrap, help);
+    const jarDescriptions = document.createElement('ul');
+    jarDescriptions.id = 'jar-descriptions';
+    jarDescriptions.className = 'visually-hidden';
+    jarDescriptions.setAttribute('aria-live', 'polite');
+    jarDescriptions.setAttribute('aria-atomic', 'false');
+    jarDescriptions.setAttribute('aria-relevant', 'additions removals text');
+    el.play.append(wrap, help, jarDescriptions);
+    syncJarDescriptions();
 
     const tools = div('play-tools');
     tools.append(
@@ -348,6 +363,30 @@ export function mountApp(root: HTMLElement): void {
 
     wireCanvas(canvas);
     resizeCanvas(canvas);
+  }
+
+  function syncJarDescriptions(): void {
+    const list = el.play.querySelector<HTMLUListElement>('#jar-descriptions');
+    if (!list || !board) return;
+
+    const existing = new Map<string, HTMLLIElement>();
+    for (const child of Array.from(list.children)) {
+      if (child instanceof HTMLLIElement && child.dataset.jarId) {
+        existing.set(child.dataset.jarId, child);
+      }
+    }
+    for (const block of board.blocks) {
+      let item = existing.get(block.id);
+      if (!item) {
+        item = document.createElement('li');
+        item.dataset.jarId = block.id;
+        list.append(item);
+      }
+      const description = describeJar(block);
+      if (item.textContent !== description) item.textContent = description;
+      existing.delete(block.id);
+    }
+    for (const item of existing.values()) item.remove();
   }
 
   function wireCanvas(canvas: HTMLCanvasElement): void {
@@ -502,6 +541,7 @@ export function mountApp(root: HTMLElement): void {
     }
     hintId = null;
     selectedId = result.cleared ? null : id;
+    syncJarDescriptions();
     if (announce) {
       const directionName = { L: 'left', R: 'right', U: 'up', D: 'down' }[dir];
       showToast(result.cleared ? 'Jar cleared' : `Slid ${directionName}`);
@@ -557,6 +597,7 @@ export function mountApp(root: HTMLElement): void {
     board = previous.board;
     selectedId = previous.selectedId;
     hintId = null;
+    syncJarDescriptions();
     showToast('Undo');
   }
 
@@ -656,4 +697,14 @@ function esc(s: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+function describeJar(block: BlockState): string {
+  const directions = block.axis === 'H'
+    ? 'left or right along its horizontal axis'
+    : 'up or down along its vertical axis';
+  const position = block.axis === 'H'
+    ? `${block.w > 1 ? `columns ${block.x + 1} to ${block.x + block.w}` : `column ${block.x + 1}`}, row ${block.y + 1}`
+    : `column ${block.x + 1}, ${block.h > 1 ? `rows ${block.y + 1} to ${block.y + block.h}` : `row ${block.y + 1}`}`;
+  return `${COLOR_NAMES[block.color]} jar, slides ${directions}, at ${position}.`;
 }
