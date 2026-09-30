@@ -8,7 +8,9 @@ test('Ctrl+Z undoes a traffic slide and restores the target car position', async
     'canvas[aria-label="Level 1 traffic puzzle board with an exit on the right"]',
   );
   const target = page.locator('#vehicle-descriptions li[data-vehicle-id="target-car"]');
+  const undo = page.getByRole('button', { name: 'Undo', exact: true });
   await expect(board).toBeVisible();
+  await expect(undo).toBeDisabled();
   await expect(target).toContainText('columns 1 to 2');
   await board.focus();
   await page.keyboard.press('Enter');
@@ -16,9 +18,11 @@ test('Ctrl+Z undoes a traffic slide and restores the target car position', async
 
   await page.keyboard.press('ArrowRight');
   await expect(page.getByRole('status')).toHaveText('Slid right');
+  await expect(undo).toBeEnabled();
   await expect(target).toContainText('columns 2 to 3');
   await board.press('Control+z');
   await expect(page.getByRole('status')).toHaveText('Undo');
+  await expect(undo).toBeDisabled();
   await expect(target).toContainText('columns 1 to 2');
 });
 

@@ -66,6 +66,7 @@ export function mountApp(root: HTMLElement): void {
   let levelId = 1;
   let board: BoardState | null = null;
   const undoHistory = new UndoHistory();
+  let undoButton: HTMLButtonElement | null = null;
   let selectedId: string | null = null;
   let hintId: string | null = null;
   let freeHintsLeft = 1;
@@ -374,15 +375,23 @@ export function mountApp(root: HTMLElement): void {
     syncVehicleDescriptions();
 
     const tools = div('play-tools');
+    undoButton = button('Undo', 'btn secondary', () => doUndo());
     tools.append(
-      button('Undo', 'btn secondary', () => doUndo()),
+      undoButton,
       button('Hint', 'btn gold', () => void doHint()),
       button('Restart', 'btn secondary', () => void doRestart()),
     );
     el.play.append(tools);
+    syncUndoButton();
 
     wireCanvas(canvas);
     resizeCanvas(canvas);
+  }
+
+  function syncUndoButton(): void {
+    if (undoButton) {
+      undoButton.disabled = !undoHistory.canUndo || !board || isWon(board);
+    }
   }
 
   function syncVehicleDescriptions(): void {
@@ -561,6 +570,7 @@ export function mountApp(root: HTMLElement): void {
     const result = slideBlock(board, id, dir);
     if (result.moved === 0) {
       undoHistory.pop();
+      syncUndoButton();
       selectedId = id;
       showToast(`No space remains to the ${DIRECTION_NAMES[dir]}`);
       sliding = false;
@@ -572,6 +582,7 @@ export function mountApp(root: HTMLElement): void {
     hintId = null;
     selectedId = result.cleared ? null : id;
     syncVehicleDescriptions();
+    syncUndoButton();
     if (announce) {
       showToast(result.cleared
         ? board.mode === 'traffic' ? 'Target vehicle escaped' : 'Jar cleared'
@@ -629,6 +640,7 @@ export function mountApp(root: HTMLElement): void {
     selectedId = previous.selectedId;
     hintId = null;
     syncVehicleDescriptions();
+    syncUndoButton();
     showToast('Undo');
   }
 

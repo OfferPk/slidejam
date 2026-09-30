@@ -39,6 +39,20 @@ const trafficExitLevel: LevelDef = {
 };
 
 describe('undo history', () => {
+  it('reports whether an undo snapshot is available', () => {
+    const history = new UndoHistory();
+    const board = loadBoard(clearingJarLevel);
+
+    expect(history.canUndo).toBe(false);
+    history.push(board, 'clearing-jar');
+    expect(history.canUndo).toBe(true);
+    expect(history.pop()).not.toBeNull();
+    expect(history.canUndo).toBe(false);
+    history.push(board, 'clearing-jar');
+    history.clear();
+    expect(history.canUndo).toBe(false);
+  });
+
   it('does not undo a completed board while the win transition is pending', () => {
     const history = new UndoHistory();
     const board = loadBoard(finalJarLevel);

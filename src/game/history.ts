@@ -19,6 +19,10 @@ export function takeUndoSnapshot(
 export class UndoHistory {
   private snapshots: UndoSnapshot[] = [];
 
+  get canUndo(): boolean {
+    return this.snapshots.length > 0;
+  }
+
   push(board: BoardState, selectedId: string | null): void {
     this.snapshots.push({ board: cloneBoard(board), selectedId });
   }
