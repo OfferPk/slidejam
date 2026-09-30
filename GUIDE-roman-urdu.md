@@ -52,7 +52,7 @@ Koi login nahi — poora game local / offline hai. Account zaroori nahi.
 ### Hint
 - **Kahan:** Play → Hint
 - **Kaise:** Pehli hint free; baad mein rewarded ad stub (Confirm → earn)
-- **Result:** Ek jar highlight + direction toast
+- **Result:** Ek jar highlight hota hai aur suggested direction (misal: “right”) toast mein aati hai
 
 ### Restart
 - **Kahan:** Play → Restart

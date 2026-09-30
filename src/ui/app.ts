@@ -47,6 +47,13 @@ const COLOR_NAMES: Record<ColorId, string> = {
   O: 'Orange',
 };
 
+const DIRECTION_NAMES: Record<Dir, string> = {
+  L: 'left',
+  R: 'right',
+  U: 'up',
+  D: 'down',
+};
+
 export function mountApp(root: HTMLElement): void {
   let persist: PersistData = loadPersist();
   let screen: Screen = 'home';
@@ -543,8 +550,7 @@ export function mountApp(root: HTMLElement): void {
     selectedId = result.cleared ? null : id;
     syncJarDescriptions();
     if (announce) {
-      const directionName = { L: 'left', R: 'right', U: 'up', D: 'down' }[dir];
-      showToast(result.cleared ? 'Jar cleared' : `Slid ${directionName}`);
+      showToast(result.cleared ? 'Jar cleared' : `Slid ${DIRECTION_NAMES[dir]}`);
     }
     sliding = false;
     if (board && isWon(board)) await onWin();
@@ -619,7 +625,7 @@ export function mountApp(root: HTMLElement): void {
     }
     hintId = h.blockId;
     selectedId = h.blockId;
-    showToast(`Hint: slide ${h.dir}`);
+    showToast(`Hint: slide ${DIRECTION_NAMES[h.dir]}`);
   }
 
   async function doRestart(): Promise<void> {
