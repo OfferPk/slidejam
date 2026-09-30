@@ -2,59 +2,134 @@
   "id": 14,
   "w": 6,
   "h": 6,
-  "walls": [
-    [
-      0,
-      2
-    ],
-    [
-      4,
-      0
-    ],
-    [
-      4,
-      4
-    ],
-    [
-      2,
-      5
-    ]
-  ],
-  "exits": [
-    {
-      "x": 0,
-      "y": 1,
-      "color": "R"
-    },
-    {
-      "x": 0,
-      "y": 3,
-      "color": "G"
-    },
-    {
-      "x": 0,
-      "y": 4,
-      "color": "G"
-    }
-  ],
+  "mode": "traffic",
+  "targetId": "target-car",
+  "trafficExit": {
+    "side": "right",
+    "lane": 2
+  },
+  "walls": [],
+  "exits": [],
   "blocks": [
     {
-      "id": "b1",
-      "x": 2,
-      "y": 1,
-      "w": 1,
+      "id": "target-car",
+      "x": 0,
+      "y": 2,
+      "w": 2,
       "h": 1,
       "color": "R",
-      "axis": "H"
+      "axis": "H",
+      "vehicleKind": "car"
     },
     {
-      "id": "b2",
-      "x": 0,
-      "y": 4,
+      "id": "right-lane-car",
+      "x": 5,
+      "y": 2,
+      "w": 1,
+      "h": 2,
+      "color": "B",
+      "axis": "V",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "center-lane-car",
+      "x": 3,
+      "y": 3,
       "w": 1,
       "h": 2,
       "color": "G",
-      "axis": "V"
+      "axis": "V",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "bottom-crossing-car",
+      "x": 4,
+      "y": 4,
+      "w": 2,
+      "h": 1,
+      "color": "Y",
+      "axis": "H",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "junction-bus",
+      "x": 4,
+      "y": 0,
+      "w": 1,
+      "h": 3,
+      "color": "O",
+      "axis": "V",
+      "vehicleKind": "bus"
+    },
+    {
+      "id": "left-lane-truck",
+      "x": 0,
+      "y": 3,
+      "w": 1,
+      "h": 3,
+      "color": "P",
+      "axis": "V",
+      "vehicleKind": "truck"
+    },
+    {
+      "id": "lower-middle-car",
+      "x": 1,
+      "y": 4,
+      "w": 1,
+      "h": 2,
+      "color": "B",
+      "axis": "V",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "lower-right-car",
+      "x": 4,
+      "y": 5,
+      "w": 2,
+      "h": 1,
+      "color": "G",
+      "axis": "H",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "center-column-car",
+      "x": 2,
+      "y": 2,
+      "w": 1,
+      "h": 2,
+      "color": "P",
+      "axis": "V",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "center-approach-car",
+      "x": 3,
+      "y": 0,
+      "w": 1,
+      "h": 2,
+      "color": "Y",
+      "axis": "V",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "bottom-row-car",
+      "x": 2,
+      "y": 5,
+      "w": 2,
+      "h": 1,
+      "color": "G",
+      "axis": "H",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "upper-row-car",
+      "x": 0,
+      "y": 0,
+      "w": 2,
+      "h": 1,
+      "color": "O",
+      "axis": "H",
+      "vehicleKind": "car"
     }
   ]
 }

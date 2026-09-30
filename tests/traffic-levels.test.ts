@@ -7,24 +7,22 @@ import { getLevel, LEVEL_COUNT, LEVELS } from '../src/levels/index';
 const trafficLevels = LEVELS.filter((level) => level.mode === 'traffic');
 
 describe('verified traffic level pack', () => {
-  it('exposes only converted IDs 1–12 and leaves remaining legacy IDs hidden', () => {
-    expect(trafficLevels.map((level) => level.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
-    expect(LEVEL_COUNT).toBe(12);
-    expect([13, 14, 25, 50].map((id) => getLevel(id))).toEqual([undefined, undefined, undefined, undefined]);
+  it('exposes only converted IDs 1–14 and leaves remaining legacy IDs hidden', () => {
+    expect(trafficLevels.map((level) => level.id)).toEqual(Array.from({ length: 14 }, (_, index) => index + 1));
+    expect(LEVEL_COUNT).toBe(14);
+    expect([15, 16, 25, 50].map((id) => getLevel(id))).toEqual([undefined, undefined, undefined, undefined]);
   });
 
-  it('gives Levels 9–12 distinct car, bus, and truck artwork with a measured difficulty increase', () => {
-    for (const id of [9, 10, 11, 12]) {
+  it('gives Levels 9–14 distinct car, bus, and truck artwork with a measured difficulty increase', () => {
+    for (const id of [9, 10, 11, 12, 13, 14]) {
       const level = getLevel(id)!;
       expect(level.blocks.map((block) => block.vehicleKind)).toEqual(
         expect.arrayContaining(['car', 'bus', 'truck']),
       );
     }
-    expect(solveBoard(loadBoard(getLevel(9)!))?.length).toBe(12);
-    expect(solveBoard(loadBoard(getLevel(10)!))?.length).toBe(13);
-    expect(solveBoard(loadBoard(getLevel(11)!))?.length).toBe(14);
-    expect(solveBoard(loadBoard(getLevel(12)!))?.length).toBe(15);
-  });
+    expect(solveBoard(loadBoard(getLevel(13)!))?.length).toBe(16);
+    expect(solveBoard(loadBoard(getLevel(14)!))?.length).toBe(17);
+  }, 10_000);
 
   it.each(trafficLevels.map((level) => [level.id, level] as const))(
     'level %i has valid vehicle geometry, a visible exit, and a replayable solver route',
@@ -102,13 +100,13 @@ describe('verified traffic level pack', () => {
     },
   );
 
-  it('raises shortest solution difficulty in one-slide steps through Level 12', () => {
+  it('raises shortest solution difficulty in one-slide steps through Level 14', () => {
     const shortestLengths = trafficLevels.map((level) => solveBoard(loadBoard(level))?.length ?? -1);
-    expect(shortestLengths).toEqual([4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+    expect(shortestLengths).toEqual([4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]);
     for (let i = 1; i < shortestLengths.length; i++) {
       expect(shortestLengths[i]!).toBeGreaterThan(shortestLengths[i - 1]!);
     }
-  });
+  }, 15_000);
 
   it('rejects lane-changing and blocked moves without completing or moving the target', () => {
     const blockedTraffic: LevelDef = {
@@ -134,7 +132,7 @@ describe('verified traffic level pack', () => {
     expect(isWon(board)).toBe(false);
   });
 
-  it.each([9, 10, 11, 12])('keeps the Level %i target blocked until its lane is clear', (id) => {
+  it.each([9, 10, 11, 12, 13, 14])('keeps the Level %i target blocked until its lane is clear', (id) => {
     const board = loadBoard(getLevel(id)!);
     const before = board.blocks.map((block) => ({ ...block }));
 

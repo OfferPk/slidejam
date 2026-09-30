@@ -8,12 +8,14 @@ test('fresh progress locks converted levels and never exposes unconverted jar le
   await page.reload();
   await page.getByRole('button', { name: 'Levels', exact: true }).click();
 
-  await expect(page.locator('.level-btn')).toHaveCount(12);
+  await expect(page.locator('.level-btn')).toHaveCount(14);
   await expect(page.getByRole('button', { name: 'Level 1', exact: true })).toBeEnabled();
-  for (const id of [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+  for (let id = 2; id <= 14; id++) {
     await expect(page.getByRole('button', { name: `Level ${id}, locked`, exact: true })).toBeDisabled();
   }
-  await expect(page.getByRole('button', { name: 'Level 13', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Level 13, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 14, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 15', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Level 50', exact: true })).toHaveCount(0);
 });
 
@@ -149,14 +151,16 @@ test('Level 7 blocks the target until traffic clears, then Levels 7–8 solve an
   });
   await page.reload();
   await page.getByRole('button', { name: 'Levels', exact: true }).click();
-  await expect(page.locator('.level-btn')).toHaveCount(12);
+  await expect(page.locator('.level-btn')).toHaveCount(14);
   await expect(page.getByRole('button', { name: 'Level 7', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Level 8, locked', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Level 9, locked', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Level 10, locked', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Level 11, locked', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Level 12, locked', exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Level 13', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Level 13, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 14, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 15', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Level 7', exact: true }).click();
 
   const board = page.getByRole('group', {
@@ -248,13 +252,15 @@ test('Level 7 blocks the target until traffic clears, then Levels 7–8 solve an
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('slidejam_v1') ?? '{}').unlocked))
     .toBe(9);
   await page.getByRole('button', { name: 'Levels', exact: true }).click();
-  await expect(page.locator('.level-btn')).toHaveCount(12);
+  await expect(page.locator('.level-btn')).toHaveCount(14);
   await expect(page.getByRole('button', { name: 'Level 8', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Level 9', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Level 10, locked', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Level 11, locked', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Level 12, locked', exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Level 13', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Level 13, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 14, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 15', exact: true })).toHaveCount(0);
 });
 
 test('keyboard solves Levels 9–10, preserves blocked moves, hints and undo, and unlocks Level 11', async ({ page }) => {
@@ -264,12 +270,14 @@ test('keyboard solves Levels 9–10, preserves blocked moves, hints and undo, an
   });
   await page.reload();
   await page.getByRole('button', { name: 'Levels', exact: true }).click();
-  await expect(page.locator('.level-btn')).toHaveCount(12);
+  await expect(page.locator('.level-btn')).toHaveCount(14);
   await expect(page.getByRole('button', { name: 'Level 9', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Level 10, locked', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Level 11, locked', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Level 12, locked', exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Level 13', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Level 13, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 14, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 15', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Level 9', exact: true }).click();
 
   const board = page.getByRole('group', {
@@ -380,13 +388,15 @@ test('keyboard solves Levels 9–10, preserves blocked moves, hints and undo, an
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('slidejam_v1') ?? '{}').unlocked))
     .toBe(11);
   await page.getByRole('button', { name: 'Levels', exact: true }).click();
-  await expect(page.locator('.level-btn')).toHaveCount(12);
+  await expect(page.locator('.level-btn')).toHaveCount(14);
   for (let id = 1; id <= 10; id++) {
     await expect(page.getByRole('button', { name: `Level ${id}`, exact: true })).toBeEnabled();
   }
   await expect(page.getByRole('button', { name: 'Level 11', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Level 12, locked', exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Level 13', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Level 13, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 14, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 15', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Level 50', exact: true })).toHaveCount(0);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('slidejam_v1') ?? '{}').unlocked))
     .toBe(11);
@@ -399,10 +409,12 @@ test('keyboard solves Levels 11–12, blocks illegal moves, and unlocks only ver
   });
   await page.reload();
   await page.getByRole('button', { name: 'Levels', exact: true }).click();
-  await expect(page.locator('.level-btn')).toHaveCount(12);
+  await expect(page.locator('.level-btn')).toHaveCount(14);
   await expect(page.getByRole('button', { name: 'Level 11', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Level 12, locked', exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Level 13', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Level 13, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 14, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 15', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Level 11', exact: true }).click();
 
   const board = page.getByRole('group', {
@@ -495,15 +507,17 @@ test('keyboard solves Levels 11–12, blocks illegal moves, and unlocks only ver
   await expect(level12Target).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(page.getByRole('heading', { name: 'Target vehicle escaped!' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Next level', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Next level', exact: true })).toBeVisible();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('slidejam_v1') ?? '{}').unlocked))
-    .toBe(12);
+    .toBe(13);
 
   await page.getByRole('button', { name: 'Levels', exact: true }).click();
-  await expect(page.locator('.level-btn')).toHaveCount(12);
-  for (let id = 1; id <= 12; id++) {
+  await expect(page.locator('.level-btn')).toHaveCount(14);
+  for (let id = 1; id <= 13; id++) {
     await expect(page.getByRole('button', { name: `Level ${id}`, exact: true })).toBeEnabled();
   }
-  await expect(page.getByRole('button', { name: 'Level 13', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Level 13', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Level 14, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 15', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Level 50', exact: true })).toHaveCount(0);
 });
