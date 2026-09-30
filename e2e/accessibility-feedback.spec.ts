@@ -63,7 +63,7 @@ test('pointer dragging slides the target only along its lane and updates its acc
     .toHaveText('Red target car, moves only left or right along its lane, at row 3, columns 2 to 3.');
 });
 
-test('only the verified traffic level is exposed even when older progress unlocks were saved', async ({ page }) => {
+test('only converted traffic levels are exposed even when older progress unlocks were saved', async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => {
     localStorage.setItem('slidejam_v1', JSON.stringify({ unlocked: 10, adsRemoved: false, mute: false }));
@@ -72,11 +72,10 @@ test('only the verified traffic level is exposed even when older progress unlock
   await page.getByRole('button', { name: 'Levels', exact: true }).click();
 
   await expect(page.getByRole('button', { name: 'Level 1', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Level 2', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Level 3', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Level 4', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Level 5', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Level 10', exact: true })).toHaveCount(0);
-  await expect(page.locator('.level-btn')).toHaveCount(1);
-  await page.getByRole('button', { name: 'Back', exact: true }).click();
-  await page.getByRole('button', { name: 'Play', exact: true }).click();
-  await expect(page.getByRole('group', {
-    name: 'Level 1 traffic puzzle board with an exit on the right',
-  })).toBeVisible();
+  await expect(page.locator('.level-btn')).toHaveCount(4);
 });

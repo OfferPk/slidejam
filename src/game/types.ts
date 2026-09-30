@@ -47,7 +47,7 @@ export interface LevelDef {
   walls: [number, number][];
   exits: ExitDef[];
   blocks: BlockDef[];
-  /** Legacy levels default to jars; level 1 introduces lane-based traffic. */
+  /** Legacy jar levels default to jars; verified traffic levels opt in explicitly. */
   mode?: GameMode;
   targetId?: string;
   trafficExit?: TrafficExitDef;

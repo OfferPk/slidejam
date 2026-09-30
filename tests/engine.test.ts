@@ -163,12 +163,14 @@ describe('legacy matching exits', () => {
 
 describe('traffic target exit and solver', () => {
   it('level 1 visibly declares a right-side target exit and includes a bus and truck', () => {
-    expect(LEVEL_COUNT).toBe(1);
+    expect(LEVEL_COUNT).toBe(4);
+    expect([getLevel(1)?.id, getLevel(2)?.id, getLevel(3)?.id, getLevel(4)?.id]).toEqual([1, 2, 3, 4]);
     expect(trafficLevel.mode).toBe('traffic');
     expect(trafficLevel.targetId).toBe('target-car');
     expect(trafficLevel.trafficExit).toEqual({ side: 'right', lane: 2 });
     expect(trafficLevel.blocks.map((block) => block.vehicleKind)).toContain('bus');
     expect(trafficLevel.blocks.map((block) => block.vehicleKind)).toContain('truck');
+    expect(getLevel(5)).toBeUndefined();
     expect(getLevel(10)).toBeUndefined();
   });
 

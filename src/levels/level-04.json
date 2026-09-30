@@ -1,52 +1,85 @@
 {
   "id": 4,
-  "w": 5,
-  "h": 5,
-  "walls": [
-    [
-      0,
-      2
-    ],
-    [
-      4,
-      2
-    ]
-  ],
-  "exits": [
-    {
-      "x": 3,
-      "y": 0,
-      "color": "R"
-    },
-    {
-      "x": 4,
-      "y": 0,
-      "color": "R"
-    },
-    {
-      "x": 1,
-      "y": 4,
-      "color": "Y"
-    }
-  ],
+  "w": 6,
+  "h": 6,
+  "mode": "traffic",
+  "targetId": "target-car",
+  "trafficExit": {
+    "side": "right",
+    "lane": 2
+  },
+  "walls": [],
+  "exits": [],
   "blocks": [
     {
-      "id": "b1",
+      "id": "target-car",
       "x": 0,
-      "y": 0,
+      "y": 2,
       "w": 2,
       "h": 1,
       "color": "R",
-      "axis": "H"
+      "axis": "H",
+      "vehicleKind": "car"
     },
     {
-      "id": "b2",
+      "id": "lower-gate-car",
       "x": 1,
+      "y": 3,
+      "w": 1,
+      "h": 2,
+      "color": "Y",
+      "axis": "V",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "junction-car",
+      "x": 2,
+      "y": 4,
+      "w": 2,
+      "h": 1,
+      "color": "P",
+      "axis": "H",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "corner-car",
+      "x": 4,
+      "y": 4,
+      "w": 1,
+      "h": 2,
+      "color": "G",
+      "axis": "V",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "crossroad-car",
+      "x": 4,
+      "y": 3,
+      "w": 2,
+      "h": 1,
+      "color": "O",
+      "axis": "H",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "lane-car",
+      "x": 2,
       "y": 2,
       "w": 1,
-      "h": 1,
-      "color": "Y",
-      "axis": "V"
+      "h": 2,
+      "color": "B",
+      "axis": "V",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "blocking-bus",
+      "x": 3,
+      "y": 0,
+      "w": 1,
+      "h": 3,
+      "color": "G",
+      "axis": "V",
+      "vehicleKind": "bus"
     }
   ]
 }

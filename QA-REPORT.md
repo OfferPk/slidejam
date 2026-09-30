@@ -1,5 +1,23 @@
 # QA Report — SlideJam MVP v0.1.0
 
+## Traffic conversion follow-up — 2026-09-30
+
+This addendum applies to the current playable catalog and supersedes the original MVP's level-count claims below; the 2026-09-28 report remains the historical audit of that release. The worktree was based on `main` commit `07b86cf4a962dbfe84c55c1dc39275be723d1209`.
+
+| Check | Result |
+|---|---|
+| Active catalog | **PASS** — only Levels 1–4 are registered; all are 6×6 traffic boards with a horizontal red target and a right-side EXIT. Legacy jar Levels 5–50 remain hidden. |
+| Geometry and lanes | **PASS** — vehicle orientation/length, board bounds, non-overlap, target lane, and rendered exit layout are solver-backed unit assertions. |
+| Solver / difficulty | **PASS** — every shortest route replays through legal moves and reaches completion on the target's final move; shortest move counts are 4, 5, 6, and 7. |
+| Unit tests | **PASS** — `npm test`: 38/38 across 6 files, including blocked/off-axis movement and completion checks. |
+| Browser E2E | **PASS** — `npm run test:e2e`: 9/9, including keyboard completion of Level 2, unlock progression, hidden legacy IDs, accessibility feedback, and pointer input. |
+| Production build | **PASS** — `npm run build` with Vite/PWA at base `/slidejam/`. |
+| Patch hygiene | **PASS** — `git diff --check`. |
+
+Keyboard and touch/pointer controls were not replaced; original Canvas-drawn vehicle artwork is retained.
+
+---
+
 **Date:** 2026-09-28 18:36 PKT (Asia/Karachi)  
 **Project:** `/workspace/factory/projects/slidejam`  
 **Version:** 0.1.0  

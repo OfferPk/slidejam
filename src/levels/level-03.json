@@ -1,38 +1,75 @@
 {
   "id": 3,
   "w": 6,
-  "h": 4,
-  "walls": [
-    [
-      2,
-      0
-    ],
-    [
-      2,
-      3
-    ]
-  ],
-  "exits": [
-    {
-      "x": 4,
-      "y": 1,
-      "color": "B"
-    },
-    {
-      "x": 5,
-      "y": 1,
-      "color": "B"
-    }
-  ],
+  "h": 6,
+  "mode": "traffic",
+  "targetId": "target-car",
+  "trafficExit": {
+    "side": "right",
+    "lane": 2
+  },
+  "walls": [],
+  "exits": [],
   "blocks": [
     {
-      "id": "b1",
+      "id": "target-car",
       "x": 0,
-      "y": 1,
+      "y": 2,
       "w": 2,
       "h": 1,
+      "color": "R",
+      "axis": "H",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "west-lane-car",
+      "x": 1,
+      "y": 3,
+      "w": 2,
+      "h": 1,
+      "color": "G",
+      "axis": "H",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "east-lane-car",
+      "x": 4,
+      "y": 3,
+      "w": 2,
+      "h": 1,
+      "color": "O",
+      "axis": "H",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "lower-west-car",
+      "x": 1,
+      "y": 5,
+      "w": 2,
+      "h": 1,
+      "color": "Y",
+      "axis": "H",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "lower-east-car",
+      "x": 3,
+      "y": 5,
+      "w": 2,
+      "h": 1,
+      "color": "P",
+      "axis": "H",
+      "vehicleKind": "car"
+    },
+    {
+      "id": "descent-truck",
+      "x": 4,
+      "y": 0,
+      "w": 1,
+      "h": 3,
       "color": "B",
-      "axis": "H"
+      "axis": "V",
+      "vehicleKind": "truck"
     }
   ]
 }

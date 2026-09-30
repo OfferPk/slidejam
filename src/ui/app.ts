@@ -287,7 +287,7 @@ export function mountApp(root: HTMLElement): void {
     settings.append(muteButton, removeAdsButton);
     el.home.append(settings);
     const note = div('home-note');
-    note.textContent = 'One playable traffic level · original vehicle artwork';
+    note.textContent = `${LEVEL_COUNT} verified traffic levels · legacy levels remain hidden`;
     el.home.append(note);
   }
 
