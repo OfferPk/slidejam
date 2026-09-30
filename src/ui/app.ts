@@ -9,7 +9,7 @@ import {
   loadBoard,
   slideBlock,
 } from '../game/engine';
-import { UndoHistory } from '../game/history';
+import { UndoHistory, takeUndoSnapshot } from '../game/history';
 import { getBoardKeyboardAction } from './keyboard';
 import { getPointerSlideAction } from './pointer';
 import {
@@ -484,11 +484,7 @@ export function mountApp(root: HTMLElement): void {
   }
 
   function doUndo(): void {
-    if (!board) {
-      showToast('Nothing to undo');
-      return;
-    }
-    const previous = undoHistory.pop();
+    const previous = takeUndoSnapshot(undoHistory, board);
     if (!previous) {
       showToast('Nothing to undo');
       return;

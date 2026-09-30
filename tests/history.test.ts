@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { UndoHistory } from '../src/game/history';
+import { UndoHistory, takeUndoSnapshot } from '../src/game/history';
 import { isWon, loadBoard, slideBlock } from '../src/game/engine';
 import type { LevelDef } from '../src/game/types';
 
@@ -18,7 +18,32 @@ const clearingJarLevel: LevelDef = {
   ],
 };
 
+const finalJarLevel: LevelDef = {
+  ...clearingJarLevel,
+  blocks: [clearingJarLevel.blocks[0]!],
+};
+
 describe('undo history', () => {
+  it('does not undo a completed board while the win transition is pending', () => {
+    const history = new UndoHistory();
+    const board = loadBoard(finalJarLevel);
+    history.push(board, 'clearing-jar');
+
+    expect(slideBlock(board, 'clearing-jar', 'R').cleared).toBe(true);
+    expect(isWon(board)).toBe(true);
+    expect(takeUndoSnapshot(history, board)).toBeNull();
+    expect(history.pop()?.selectedId).toBe('clearing-jar');
+  });
+
+  it('clears prior-level snapshots at a reset boundary', () => {
+    const history = new UndoHistory();
+    history.push(loadBoard(clearingJarLevel), 'clearing-jar');
+
+    history.clear();
+
+    expect(history.pop()).toBeNull();
+  });
+
   it('restores the selected jar when undo reverses a clear mid-level', () => {
     const history = new UndoHistory();
     const board = loadBoard(clearingJarLevel);

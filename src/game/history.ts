@@ -6,6 +6,15 @@ export interface UndoSnapshot {
   selectedId: string | null;
 }
 
+/** Take the previous state only while the active level is still in progress. */
+export function takeUndoSnapshot(
+  history: UndoHistory,
+  board: BoardState | null,
+): UndoSnapshot | null {
+  if (!board || board.blocks.length === 0) return null;
+  return history.pop();
+}
+
 /** Store a restorable board and its active selection before a move. */
 export class UndoHistory {
   private snapshots: UndoSnapshot[] = [];
