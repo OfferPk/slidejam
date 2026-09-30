@@ -1,53 +1,40 @@
 import { expect, test } from '@playwright/test';
 
-test('Ctrl+Z undoes a keyboard slide and restores the jar position', async ({ page }) => {
+test('Ctrl+Z undoes a traffic slide and restores the target car position', async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => {
-    localStorage.setItem(
-      'slidejam_v1',
-      JSON.stringify({ unlocked: 4, adsRemoved: false, mute: false }),
-    );
-  });
-  await page.reload();
   await page.getByRole('button', { name: 'Play', exact: true }).click();
 
-  const board = page.locator('canvas[aria-label="Level 4 puzzle board"]');
-  await expect(board).toBeVisible();
-  const yellowJar = page.locator('#jar-descriptions li[data-jar-id="b2"]');
-  await expect(yellowJar).toHaveText(
-    'Yellow jar, slides up or down along its vertical axis, at column 2, row 3.',
+  const board = page.locator(
+    'canvas[aria-label="Level 1 traffic puzzle board with an exit on the right"]',
   );
+  const target = page.locator('#vehicle-descriptions li[data-vehicle-id="target-car"]');
+  await expect(board).toBeVisible();
+  await expect(target).toContainText('columns 1 to 2');
   await board.focus();
   await page.keyboard.press('Enter');
-  await page.keyboard.press('Enter');
-  await expect(page.getByRole('status')).toHaveText('Selected jar 2 of 2');
+  await expect(page.getByRole('status')).toHaveText('Selected target car 1 of 4');
 
-  // In level 4, jar 2 can slide up once without clearing; a second up is blocked.
-  await page.keyboard.press('ArrowUp');
-  await expect(page.getByRole('status')).toHaveText('Slid up');
-  await expect(yellowJar).toHaveText(
-    'Yellow jar, slides up or down along its vertical axis, at column 2, row 2.',
-  );
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('status')).toHaveText('Slid right');
+  await expect(target).toContainText('columns 2 to 3');
   await board.press('Control+z');
   await expect(page.getByRole('status')).toHaveText('Undo');
-  await expect(yellowJar).toHaveText(
-    'Yellow jar, slides up or down along its vertical axis, at column 2, row 3.',
-  );
-  await page.keyboard.press('ArrowUp');
-  await expect(page.getByRole('status')).toHaveText('Slid up');
+  await expect(target).toContainText('columns 1 to 2');
 });
 
-test('off-axis keyboard input explains the valid slide directions', async ({ page }) => {
+test('off-axis keyboard input explains the vehicle lane constraint', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Play', exact: true }).click();
 
-  const board = page.locator('canvas[aria-label="Level 1 puzzle board"]');
+  const board = page.locator(
+    'canvas[aria-label="Level 1 traffic puzzle board with an exit on the right"]',
+  );
   await expect(board).toBeVisible();
   await board.focus();
   await page.keyboard.press('Enter');
   await page.keyboard.press('ArrowUp');
 
   await expect(page.getByRole('status')).toHaveText(
-    'Use left or right to slide this jar',
+    'Use left or right to move this vehicle along its lane',
   );
 });

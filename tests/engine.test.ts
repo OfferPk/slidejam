@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  axisAllows,
   cloneBoard,
   hintMove,
   isWon,
@@ -7,10 +8,11 @@ import {
   loadBoard,
   maxSlide,
   slideBlock,
+  solveBoard,
   tryClearBlock,
 } from '../src/game/engine';
 import type { LevelDef } from '../src/game/types';
-import { getLevel } from '../src/levels/index';
+import { getLevel, LEVEL_COUNT } from '../src/levels/index';
 
 const fixture: LevelDef = {
   id: 99,
@@ -24,8 +26,10 @@ const fixture: LevelDef = {
   blocks: [{ id: 'b1', x: 0, y: 1, w: 2, h: 1, color: 'R', axis: 'H' }],
 };
 
-describe('slide bounds', () => {
-  it('slides until edge then stops', () => {
+const trafficLevel = getLevel(1)!;
+
+describe('slide bounds and lane constraints', () => {
+  it('slides a legacy block until an edge then stops', () => {
     const board = loadBoard({
       id: 1,
       w: 5,
@@ -34,28 +38,42 @@ describe('slide bounds', () => {
       exits: [],
       blocks: [{ id: 'b1', x: 1, y: 1, w: 2, h: 1, color: 'R', axis: 'H' }],
     });
-    const r = slideBlock(board, 'b1', 'L');
-    expect(r.moved).toBe(1);
+    const result = slideBlock(board, 'b1', 'L');
+    expect(result.moved).toBe(1);
     expect(board.blocks[0]!.x).toBe(0);
-    const r2 = slideBlock(board, 'b1', 'L');
-    expect(r2.moved).toBe(0);
+    expect(slideBlock(board, 'b1', 'L').moved).toBe(0);
   });
 
-  it('rejects off-axis slide', () => {
-    const board = loadBoard(fixture);
-    const r = slideBlock(board, 'b1', 'U');
-    expect(r.moved).toBe(0);
+  it('rejects off-axis vehicle movement without changing its lane', () => {
+    const board = loadBoard(trafficLevel);
+    const before = board.blocks.find((block) => block.id === 'target-car')!;
+    const result = slideBlock(board, 'target-car', 'U');
+    expect(result).toEqual({ moved: 0, cleared: false });
+    expect(board.blocks.find((block) => block.id === 'target-car')).toMatchObject({
+      x: before.x,
+      y: before.y,
+    });
+    expect(axisAllows(before.axis, 'U')).toBe(false);
   });
 
-  it('maxSlide reports remaining cells', () => {
+  it('keeps every listed legal vehicle move on that vehicle axis', () => {
+    const board = loadBoard(trafficLevel);
+    for (const move of listLegalMoves(board)) {
+      const vehicle = board.blocks.find((block) => block.id === move.blockId)!;
+      expect(move.dist).toBeGreaterThan(0);
+      expect(axisAllows(vehicle.axis, move.dir)).toBe(true);
+    }
+  });
+
+  it('reports the remaining legacy slide distance', () => {
     const board = loadBoard(fixture);
     expect(maxSlide(board, 'b1', 'R')).toBe(4);
     expect(maxSlide(board, 'b1', 'L')).toBe(0);
   });
 });
 
-describe('collision', () => {
-  it('stops before wall', () => {
+describe('collision and blocked traffic', () => {
+  it('stops before a wall', () => {
     const board = loadBoard({
       id: 2,
       w: 6,
@@ -64,12 +82,12 @@ describe('collision', () => {
       exits: [],
       blocks: [{ id: 'b1', x: 0, y: 1, w: 2, h: 1, color: 'R', axis: 'H' }],
     });
-    const r = slideBlock(board, 'b1', 'R');
-    expect(r.moved).toBe(1); // lands at x=1, wall at 3 blocks further
+    const result = slideBlock(board, 'b1', 'R');
+    expect(result.moved).toBe(1);
     expect(board.blocks[0]!.x).toBe(1);
   });
 
-  it('stops before another block', () => {
+  it('stops before another legacy block', () => {
     const board = loadBoard({
       id: 3,
       w: 7,
@@ -81,23 +99,40 @@ describe('collision', () => {
         { id: 'b', x: 4, y: 1, w: 2, h: 1, color: 'G', axis: 'H' },
       ],
     });
-    const r = slideBlock(board, 'a', 'R');
-    expect(r.moved).toBe(2);
-    expect(board.blocks.find((x) => x.id === 'a')!.x).toBe(2);
+    expect(slideBlock(board, 'a', 'R').moved).toBe(2);
+    expect(board.blocks.find((block) => block.id === 'a')!.x).toBe(2);
+  });
+
+  it('rejects a bus move blocked by the delivery truck', () => {
+    const board = loadBoard(trafficLevel);
+    const bus = board.blocks.find((block) => block.id === 'city-bus')!;
+    expect(slideBlock(board, 'city-bus', 'D')).toEqual({ moved: 0, cleared: false });
+    expect(board.blocks.find((block) => block.id === 'city-bus')).toMatchObject({
+      x: bus.x,
+      y: bus.y,
+    });
+  });
+
+  it('does not complete when the target car is still blocked in its lane', () => {
+    const board = loadBoard(trafficLevel);
+    const result = slideBlock(board, 'target-car', 'R');
+    expect(result).toEqual({ moved: 1, cleared: false });
+    expect(board.blocks.find((block) => block.id === 'target-car')!.x).toBe(1);
+    expect(isWon(board)).toBe(false);
   });
 });
 
-describe('exit clear', () => {
-  it('clears when block fully covers matching exits', () => {
+describe('legacy matching exits', () => {
+  it('clears a block when every cell reaches a matching exit', () => {
     const board = loadBoard(fixture);
-    const r = slideBlock(board, 'b1', 'R');
-    expect(r.moved).toBeGreaterThan(0);
-    expect(r.cleared).toBe(true);
-    expect(board.blocks.length).toBe(0);
+    const result = slideBlock(board, 'b1', 'R');
+    expect(result.moved).toBeGreaterThan(0);
+    expect(result.cleared).toBe(true);
+    expect(board.blocks).toHaveLength(0);
     expect(isWon(board)).toBe(true);
   });
 
-  it('does not clear on partial cover', () => {
+  it('does not clear on a partial cover', () => {
     const board = loadBoard({
       id: 4,
       w: 5,
@@ -106,12 +141,11 @@ describe('exit clear', () => {
       exits: [{ x: 2, y: 1, color: 'R' }],
       blocks: [{ id: 'b1', x: 1, y: 1, w: 2, h: 1, color: 'R', axis: 'H' }],
     });
-    // Already covering (2,1) but not (1,1) exit — only one exit under half
     expect(tryClearBlock(board, 'b1')).toBe(false);
-    expect(board.blocks.length).toBe(1);
+    expect(board.blocks).toHaveLength(1);
   });
 
-  it('rejects wrong-color exit', () => {
+  it('rejects a wrong-color exit', () => {
     const board = loadBoard({
       id: 5,
       w: 4,
@@ -127,32 +161,63 @@ describe('exit clear', () => {
   });
 });
 
-describe('fixture solve path smoke', () => {
-  it('fixture wins in one right slide', () => {
-    const board = loadBoard(fixture);
-    expect(listLegalMoves(board).length).toBeGreaterThan(0);
-    slideBlock(board, 'b1', 'R');
-    expect(isWon(board)).toBe(true);
+describe('traffic target exit and solver', () => {
+  it('level 1 visibly declares a right-side target exit and includes a bus and truck', () => {
+    expect(LEVEL_COUNT).toBe(1);
+    expect(trafficLevel.mode).toBe('traffic');
+    expect(trafficLevel.targetId).toBe('target-car');
+    expect(trafficLevel.trafficExit).toEqual({ side: 'right', lane: 2 });
+    expect(trafficLevel.blocks.map((block) => block.vehicleKind)).toContain('bus');
+    expect(trafficLevel.blocks.map((block) => block.vehicleKind)).toContain('truck');
+    expect(getLevel(10)).toBeUndefined();
   });
 
-  it('level 1 from pack is solvable via hint loop', () => {
-    const level = getLevel(1);
-    expect(level).toBeTruthy();
-    const board = loadBoard(level!);
-    let guard = 40;
-    while (!isWon(board) && guard-- > 0) {
-      const h = hintMove(board);
-      expect(h).not.toBeNull();
-      slideBlock(board, h!.blockId, h!.dir);
+  it('solves level 1 using legal lane slides and wins only after the target exits', () => {
+    const board = loadBoard(trafficLevel);
+    const solution = solveBoard(board);
+    expect(solution).not.toBeNull();
+    expect(solution!.length).toBeGreaterThan(0);
+    expect(solution!.length).toBeLessThanOrEqual(8);
+
+    for (const move of solution!) {
+      const legal = listLegalMoves(board).find(
+        (candidate) => candidate.blockId === move.blockId && candidate.dir === move.dir,
+      );
+      expect(legal).toBeTruthy();
+      const vehicle = board.blocks.find((block) => block.id === move.blockId)!;
+      const previousX = vehicle.x;
+      const previousY = vehicle.y;
+      expect(axisAllows(vehicle.axis, move.dir)).toBe(true);
+      const result = slideBlock(board, move.blockId, move.dir);
+      expect(result.moved).toBeGreaterThan(0);
+      const movedVehicle = board.blocks.find((block) => block.id === move.blockId);
+      if (movedVehicle) {
+        if (vehicle.axis === 'H') expect(movedVehicle.y).toBe(previousY);
+        else expect(movedVehicle.x).toBe(previousX);
+      }
     }
+
     expect(isWon(board)).toBe(true);
+    expect(board.blocks.some((block) => block.id === 'target-car')).toBe(false);
+    expect(board.blocks.length).toBeGreaterThan(0);
   });
 
-  it('cloneBoard is independent', () => {
-    const board = loadBoard(fixture);
-    const c = cloneBoard(board);
-    slideBlock(c, 'b1', 'R');
-    expect(board.blocks[0]!.x).toBe(0);
-    expect(isWon(c)).toBe(true);
+  it('uses the solver’s first legal step as the traffic hint', () => {
+    const board = loadBoard(trafficLevel);
+    const solution = solveBoard(board);
+    expect(solution?.[0]).toBeTruthy();
+    expect(hintMove(board)).toEqual({
+      blockId: solution![0]!.blockId,
+      dir: solution![0]!.dir,
+    });
+  });
+
+  it('cloneBoard remains independent for both traffic and legacy boards', () => {
+    const board = loadBoard(trafficLevel);
+    const copy = cloneBoard(board);
+    const solution = solveBoard(copy)!;
+    for (const move of solution) slideBlock(copy, move.blockId, move.dir);
+    expect(isWon(copy)).toBe(true);
+    expect(isWon(board)).toBe(false);
   });
 });

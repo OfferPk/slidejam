@@ -23,6 +23,21 @@ const finalJarLevel: LevelDef = {
   blocks: [clearingJarLevel.blocks[0]!],
 };
 
+const trafficExitLevel: LevelDef = {
+  id: 100,
+  w: 4,
+  h: 2,
+  mode: 'traffic',
+  targetId: 'target',
+  trafficExit: { side: 'right', lane: 0 },
+  walls: [],
+  exits: [],
+  blocks: [
+    { id: 'target', x: 0, y: 0, w: 2, h: 1, color: 'R', axis: 'H', vehicleKind: 'car' },
+    { id: 'truck', x: 0, y: 1, w: 2, h: 1, color: 'O', axis: 'H', vehicleKind: 'truck' },
+  ],
+};
+
 describe('undo history', () => {
   it('does not undo a completed board while the win transition is pending', () => {
     const history = new UndoHistory();
@@ -33,6 +48,18 @@ describe('undo history', () => {
     expect(isWon(board)).toBe(true);
     expect(takeUndoSnapshot(history, board)).toBeNull();
     expect(history.pop()?.selectedId).toBe('clearing-jar');
+  });
+
+  it('does not undo after the target exits while other traffic remains', () => {
+    const history = new UndoHistory();
+    const board = loadBoard(trafficExitLevel);
+    history.push(board, 'target');
+
+    expect(slideBlock(board, 'target', 'R').cleared).toBe(true);
+    expect(board.blocks.map((block) => block.id)).toEqual(['truck']);
+    expect(isWon(board)).toBe(true);
+    expect(takeUndoSnapshot(history, board)).toBeNull();
+    expect(history.pop()?.selectedId).toBe('target');
   });
 
   it('clears prior-level snapshots at a reset boundary', () => {

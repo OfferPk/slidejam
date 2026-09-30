@@ -4,15 +4,16 @@
 
 ## 1. Yeh project kya hai?
 
-SlideJam ek **offline slide-to-exit** puzzle game hai. Board par pehle se jam jars (blocks) lage hote hain — unhein swipe karke matching color ke exit pads par slide karo. Jab jar poora exit cover kare, clear ho jata hai. Saari jars clear = win.
+SlideJam ek **traffic-jam slide puzzle** hai. Abhi sirf aik mukammal **6×6 traffic level** khelne ke liye khula hai: laal target car ko uski lane mein slide karo, bus aur truck samet rukawat wali traffic ko move karo, phir target car ko right-side **EXIT** se bahar nikalo.
 
-**Note:** Yeh GlowGrid nahi hai (wahan tray se pieces place karke row/column clear hota hai). Yahan sirf **slide** hota hai.
+Repo mein purane 49 jar-puzzle level files abhi maujood hain, lekin woh game menu mein **playable nahi** hain. Unhein traffic rules mein convert aur solvability-check karne ke baad hi dobara khola jayega; is liye player ko kisi unrevised jar board par nahi bheja jayega.
+
+Traffic level mein gaariyan apni lane tak mehdood hain: horizontal gaari left/right, vertical gaari up/down slide karti hai. Gaari doosri traffic ke andar se nahi guzar sakti. Target car exit se nikal jaye to level jeet jate ho; baqi gaariyan board par reh sakti hain.
 
 ## 2. Kahan se download karein?
 
-- GitHub: `https://github.com/OfferPk/slidejam` (publish ke baad)
-- ZIP / Release: GitHub Releases se `v0.1.0` (jab ship ho)
-- Live Pages (baad mein): `https://offerpk.github.io/slidejam/`
+- GitHub: `https://github.com/OfferPk/slidejam`
+- Live Pages: `https://offerpk.github.io/slidejam/`
 
 ## 3. Pehle kya chahiye? (requirements)
 
@@ -30,61 +31,39 @@ SlideJam ek **offline slide-to-exit** puzzle game hai. Board par pehle se jam ja
 
 ## 5. Demo login (agar ho)
 
-Koi login nahi — poora game local / offline hai. Account zaroori nahi.
+Koi login nahi — game local / offline hai. Account zaroori nahi.
 
-## 6. Features — har ek kya karta hai
+## 6. Controls
 
-### Play / Level select
+### Play
+
 - **Kahan:** Home → Play ya Levels
-- **Kaise:** Level number dabao (unlocked). Pehla level hamesha khula.
-- **Result:** Board load hota hai jars + exits + walls ke saath.
-
-### Slide controls
-- **Kahan:** Play screen canvas
-- **Kaise:** Jar par drag/swipe — sirf uski axis (↔ ya ↕)
-- **Result:** Jar wall / doosri jar tak slide; matching exit pe poora cover = clear
+- **Kaise:** Gaari par tap/click karo; phir uski lane mein drag/swipe. Keyboard par board focus ho to **Enter** se gaari select karo, phir usi axis ka arrow dabao.
+- **Maqsad:** Red target car ka rasta clear karo aur use right-side EXIT se bahar slide karo. Bus/truck bhi sirf apni lane mein chalte hain.
 
 ### Undo
+
 - **Kahan:** Play tools → Undo
-- **Kaise:** Last move wapas
-- **Result:** Board pehle wale state par
+- **Kaise:** Last move wapas. **Ctrl/⌘+Z** bhi kaam karta hai.
+- **Natija:** Board pehle wali state par; target EXIT se nikalne ke baad win ko undo nahi kiya ja sakta.
 
-### Hint
-- **Kahan:** Play → Hint
-- **Kaise:** Pehli hint free; baad mein rewarded ad stub (Confirm → earn)
-- **Result:** Ek jar highlight hota hai aur suggested direction (misal: “right”) toast mein aati hai
+### Hint, Restart, aur settings
 
-### Restart
-- **Kahan:** Play → Restart
-- **Kaise:** Dabao — interstitial ad stub aa sakta hai
-- **Result:** Level dubara start
-
-### Mute / Remove ads
-- **Kahan:** Home settings
-- **Kaise:** Mute toggle; Remove ads → IAP stub (`adsRemoved` localStorage)
-- **Result:** Mute flag save; ads skip jab removed
-
-### Progress
-- **Kahan:** automatic
-- **Kaise:** Level jeeto → agla unlock
-- **Result:** `localStorage` key `slidejam_v1`
+- **Hint:** Pehli hint free; baad mein rewarded-ad stub. Gaari highlight hoti hai aur direction toast mein aati hai.
+- **Restart:** Level dubara start; interstitial ad stub aa sakta hai.
+- **Mute:** Home settings se toggle.
+- **Progress:** `localStorage` key `slidejam_v1` mein save hota hai.
 
 ## 7. Common masail (troubleshooting)
 
-- **Board blank / path galat:** Vite `base: '/slidejam/'` — Pages par isi path se serve karo
-- **Touch kaam nahi:** Browser zoom / overlay check; canvas pe seedha drag karo
-- **Level lock:** Pehle wale levels jeeto; ya progress clear karke level 1 se
-- **PWA update nahi:** Hard refresh / SW update; `npm run build` ke baad naya deploy
+- **Board blank / path galat:** Vite `base: '/slidejam/'` — Pages par isi path se serve karo.
+- **Touch kaam nahi:** Browser zoom / overlay check; canvas pe seedha lane ki direction mein drag karo.
+- **Koi aur level nazar nahi aata:** Filhaal sirf traffic level khula hai; purane jar layouts jaan bujh kar hidden hain jab tak woh convert aur verify na hon.
+- **PWA update nahi:** Hard refresh / service-worker update; `npm run build` ke baad naya deploy.
 
 ## 8. Security / privacy tips
 
 - Koi account / password nahi
 - Progress sirf device `localStorage` mein
-- Real AdMob / billing keys MVP mein nahi — sirf stubs
-- Public Wi-Fi par bhi theek; sensitive data collect nahi hota
-
-## 9. Agla update
-
-- Zyada levels / difficulty tuning
-- Real ads SDK (jab publish gate clear ho)
-- Sound pack (mute pehle se wired)
+- Real ad SDK ya billing keys nahi — sirf stubs
+- Sensitive data collect nahi hota

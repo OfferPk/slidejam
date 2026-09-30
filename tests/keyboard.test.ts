@@ -11,7 +11,7 @@ describe('board keyboard controls', () => {
     expect(getBoardKeyboardAction('ArrowDown', plain)).toEqual({ type: 'slide', dir: 'D' });
   });
 
-  it('uses Enter to cycle jars and Ctrl/Command+Z to undo', () => {
+  it('uses Enter to cycle selectable pieces and Ctrl/Command+Z to undo', () => {
     expect(getBoardKeyboardAction('Enter', plain)).toEqual({ type: 'select-next' });
     expect(getBoardKeyboardAction('z', { ...plain, ctrlKey: true })).toEqual({ type: 'undo' });
     expect(getBoardKeyboardAction('Z', { ...plain, metaKey: true })).toEqual({ type: 'undo' });

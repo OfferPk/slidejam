@@ -1,6 +1,6 @@
 /**
- * SlideJam UI — Home, level select, play, win; mute/settings; ads wired.
- * Slide-to-exit (NOT GlowGrid place/clear). Soft candy / jam jars theme.
+ * SlideJam UI — verified traffic slice with retained legacy slide compatibility.
+ * Vehicle movements stay axis-locked; undo, hints, and keyboard controls remain.
  */
 import {
   axisAllows,
@@ -45,6 +45,12 @@ const COLOR_NAMES: Record<ColorId, string> = {
   Y: 'Yellow',
   P: 'Purple',
   O: 'Orange',
+};
+
+const VEHICLE_NAMES: Record<BlockState['vehicleKind'], string> = {
+  car: 'car',
+  bus: 'bus',
+  truck: 'truck',
 };
 
 const DIRECTION_NAMES: Record<Dir, string> = {
@@ -240,11 +246,12 @@ export function mountApp(root: HTMLElement): void {
   function renderHome(): void {
     el.home.innerHTML = '';
     const hero = div('home-hero');
-    hero.append(div('home-jar'));
+    hero.append(div('home-car'));
     const title = document.createElement('h1');
     title.textContent = 'SlideJam';
     const tag = div('tagline');
-    tag.textContent = 'Slide candy jars to matching exits. Offline. Not a place-and-clear puzzle.';
+    tag.textContent =
+      'Move every vehicle only along its lane, clear the traffic blocking the red target car, then drive it through EXIT.';
     hero.append(title, tag);
     el.home.append(hero);
 
@@ -280,7 +287,7 @@ export function mountApp(root: HTMLElement): void {
     settings.append(muteButton, removeAdsButton);
     el.home.append(settings);
     const note = div('home-note');
-    note.textContent = `Unlocked ${persist.unlocked}/${LEVEL_COUNT} · proj_slidejam_001`;
+    note.textContent = 'One playable traffic level · original vehicle artwork';
     el.home.append(note);
   }
 
@@ -328,7 +335,7 @@ export function mountApp(root: HTMLElement): void {
     const bar = div('play-bar');
     const title = document.createElement('h2');
     title.className = 'title';
-    title.textContent = `Level ${levelId}`;
+    title.textContent = board?.mode === 'traffic' ? `Level ${levelId} · Traffic` : `Level ${levelId}`;
     const backButton = button('←', 'btn ghost', () => setScreen('levels'));
     backButton.setAttribute('aria-label', 'Back to levels');
     const muteButton = button(persist.mute ? '🔇' : '🔊', 'btn ghost', () => {
@@ -343,22 +350,28 @@ export function mountApp(root: HTMLElement): void {
     const wrap = div('canvas-wrap');
     const canvas = document.createElement('canvas');
     canvas.setAttribute('role', 'group');
-    canvas.setAttribute('aria-label', `Level ${levelId} puzzle board`);
-    canvas.setAttribute('aria-describedby', 'board-help jar-descriptions');
+    canvas.setAttribute(
+      'aria-label',
+      board?.mode === 'traffic'
+        ? `Level ${levelId} traffic puzzle board with an exit on the right`
+        : `Level ${levelId} puzzle board`,
+    );
+    canvas.setAttribute('aria-describedby', 'board-help vehicle-descriptions');
     canvas.tabIndex = 0;
     wrap.append(canvas);
     const help = div('play-help');
     help.id = 'board-help';
-    help.textContent =
-      'Tap or click a jar, then swipe or drag along its arrow. The board receives focus when a level opens. Press Enter to cycle jars, then use the arrow keys; Ctrl/⌘+Z undoes a move.';
-    const jarDescriptions = document.createElement('ul');
-    jarDescriptions.id = 'jar-descriptions';
-    jarDescriptions.className = 'visually-hidden';
-    jarDescriptions.setAttribute('aria-live', 'polite');
-    jarDescriptions.setAttribute('aria-atomic', 'false');
-    jarDescriptions.setAttribute('aria-relevant', 'additions removals text');
-    el.play.append(wrap, help, jarDescriptions);
-    syncJarDescriptions();
+    help.textContent = board?.mode === 'traffic'
+      ? 'Move vehicles only along their orientation: horizontal vehicles slide left or right; vertical vehicles slide up or down. Clear the red target car’s lane and drive it through the EXIT on the right. Tap or drag a vehicle, or focus the board and press Enter to cycle vehicles, then use the arrow keys. Ctrl/⌘+Z undoes a move.'
+      : 'Tap or click a jar, then swipe or drag along its arrow. The board receives focus when a level opens. Press Enter to cycle jars, then use the arrow keys; Ctrl/⌘+Z undoes a move.';
+    const vehicleDescriptions = document.createElement('ul');
+    vehicleDescriptions.id = 'vehicle-descriptions';
+    vehicleDescriptions.className = 'visually-hidden';
+    vehicleDescriptions.setAttribute('aria-live', 'polite');
+    vehicleDescriptions.setAttribute('aria-atomic', 'false');
+    vehicleDescriptions.setAttribute('aria-relevant', 'additions removals text');
+    el.play.append(wrap, help, vehicleDescriptions);
+    syncVehicleDescriptions();
 
     const tools = div('play-tools');
     tools.append(
@@ -372,24 +385,26 @@ export function mountApp(root: HTMLElement): void {
     resizeCanvas(canvas);
   }
 
-  function syncJarDescriptions(): void {
-    const list = el.play.querySelector<HTMLUListElement>('#jar-descriptions');
+  function syncVehicleDescriptions(): void {
+    const list = el.play.querySelector<HTMLUListElement>('#vehicle-descriptions');
     if (!list || !board) return;
 
     const existing = new Map<string, HTMLLIElement>();
     for (const child of Array.from(list.children)) {
-      if (child instanceof HTMLLIElement && child.dataset.jarId) {
-        existing.set(child.dataset.jarId, child);
+      if (child instanceof HTMLLIElement && child.dataset.vehicleId) {
+        existing.set(child.dataset.vehicleId, child);
       }
     }
     for (const block of board.blocks) {
       let item = existing.get(block.id);
       if (!item) {
         item = document.createElement('li');
-        item.dataset.jarId = block.id;
+        item.dataset.vehicleId = block.id;
         list.append(item);
       }
-      const description = describeJar(block);
+      const description = board.mode === 'traffic'
+        ? describeVehicle(block, board.targetId === block.id)
+        : describeJar(block);
       if (item.textContent !== description) item.textContent = description;
       existing.delete(block.id);
     }
@@ -465,14 +480,18 @@ export function mountApp(root: HTMLElement): void {
       const action = getPointerSlideAction(dx, dy, block.axis, SWIPE_THRESHOLD);
       if (!action) {
         const index = board.blocks.findIndex((candidate) => candidate.id === id);
-        showToast(`Selected jar ${index + 1} of ${board.blocks.length}`);
+        showToast(selectionMessage(board, block, index));
         return;
       }
       if (action.type === 'off-axis') {
         showToast(
-          block.axis === 'H'
-            ? 'Use left or right to slide this jar'
-            : 'Use up or down to slide this jar',
+          board.mode === 'traffic'
+            ? block.axis === 'H'
+              ? 'Use left or right to move this vehicle along its lane'
+              : 'Use up or down to move this vehicle along its lane'
+            : block.axis === 'H'
+              ? 'Use left or right to slide this jar'
+              : 'Use up or down to slide this jar',
         );
         return;
       }
@@ -503,7 +522,7 @@ export function mountApp(root: HTMLElement): void {
       const nextIndex = (currentIndex + 1) % board.blocks.length;
       selectedId = board.blocks[nextIndex]!.id;
       hintId = null;
-      showToast(`Selected jar ${nextIndex + 1} of ${board.blocks.length}`);
+      showToast(selectionMessage(board, board.blocks[nextIndex]!, nextIndex));
       return;
     }
     if (action.type === 'undo') {
@@ -512,7 +531,7 @@ export function mountApp(root: HTMLElement): void {
     }
 
     if (!selectedId) {
-      showToast('Press Enter to select a jar first');
+      showToast(board.mode === 'traffic' ? 'Press Enter to select a vehicle first' : 'Press Enter to select a jar first');
       return;
     }
     const selected = board.blocks.find((block) => block.id === selectedId);
@@ -522,9 +541,13 @@ export function mountApp(root: HTMLElement): void {
     }
     if (!axisAllows(selected.axis, action.dir)) {
       showToast(
-        selected.axis === 'H'
-          ? 'Use left or right to slide this jar'
-          : 'Use up or down to slide this jar',
+        board.mode === 'traffic'
+          ? selected.axis === 'H'
+            ? 'Use left or right to move this vehicle along its lane'
+            : 'Use up or down to move this vehicle along its lane'
+          : selected.axis === 'H'
+            ? 'Use left or right to slide this jar'
+            : 'Use up or down to slide this jar',
       );
       return;
     }
@@ -548,9 +571,11 @@ export function mountApp(root: HTMLElement): void {
     }
     hintId = null;
     selectedId = result.cleared ? null : id;
-    syncJarDescriptions();
+    syncVehicleDescriptions();
     if (announce) {
-      showToast(result.cleared ? 'Jar cleared' : `Slid ${DIRECTION_NAMES[dir]}`);
+      showToast(result.cleared
+        ? board.mode === 'traffic' ? 'Target vehicle escaped' : 'Jar cleared'
+        : `Slid ${DIRECTION_NAMES[dir]}`);
     }
     sliding = false;
     if (board && isWon(board)) await onWin();
@@ -603,7 +628,7 @@ export function mountApp(root: HTMLElement): void {
     board = previous.board;
     selectedId = previous.selectedId;
     hintId = null;
-    syncJarDescriptions();
+    syncVehicleDescriptions();
     showToast('Undo');
   }
 
@@ -648,13 +673,15 @@ export function mountApp(root: HTMLElement): void {
     el.win.innerHTML = '';
     const hero = div('win-hero');
     const emoji = div('emoji');
-    emoji.textContent = '🍓';
+    const trafficWin = board?.mode === 'traffic';
+    emoji.textContent = trafficWin ? '→' : '🍓';
     const h = document.createElement('h1');
-    h.textContent = 'Jar cleared!';
+    h.textContent = trafficWin ? 'Target vehicle escaped!' : 'Jar cleared!';
     const tag = div('tagline');
-    tag.textContent =
-      levelId >= LEVEL_COUNT
-        ? 'All 50 levels done — sweet!'
+    tag.textContent = trafficWin
+      ? 'Traffic cleared. The red target car reached EXIT.'
+      : levelId >= LEVEL_COUNT
+        ? 'All playable levels complete.'
         : `Level ${levelId} complete. Next jam unlocks.`;
     hero.append(emoji, h, tag);
     el.win.append(hero);
@@ -713,4 +740,20 @@ function describeJar(block: BlockState): string {
     ? `${block.w > 1 ? `columns ${block.x + 1} to ${block.x + block.w}` : `column ${block.x + 1}`}, row ${block.y + 1}`
     : `column ${block.x + 1}, ${block.h > 1 ? `rows ${block.y + 1} to ${block.y + block.h}` : `row ${block.y + 1}`}`;
   return `${COLOR_NAMES[block.color]} jar, slides ${directions}, at ${position}.`;
+}
+
+function describeVehicle(block: BlockState, isTarget: boolean): string {
+  const directions = block.axis === 'H' ? 'left or right' : 'up or down';
+  const position = block.axis === 'H'
+    ? `row ${block.y + 1}, columns ${block.x + 1} to ${block.x + block.w}`
+    : `column ${block.x + 1}, rows ${block.y + 1} to ${block.y + block.h}`;
+  return `${COLOR_NAMES[block.color]} ${isTarget ? 'target ' : ''}${VEHICLE_NAMES[block.vehicleKind]}, moves only ${directions} along its lane, at ${position}.`;
+}
+
+function selectionMessage(board: BoardState, block: BlockState, index: number): string {
+  if (board.mode === 'traffic') {
+    const label = board.targetId === block.id ? 'target car' : VEHICLE_NAMES[block.vehicleKind];
+    return `Selected ${label} ${index + 1} of ${board.blocks.length}`;
+  }
+  return `Selected jar ${index + 1} of ${board.blocks.length}`;
 }

@@ -91,23 +91,36 @@ h2 { font-size: 1.2rem; color: var(--cream); }
   gap: 10px;
   text-align: center;
 }
-.home-jar {
+.home-car {
   width: 100px;
-  height: 100px;
+  height: 62px;
   margin-bottom: 8px;
-  border-radius: 24px;
-  background: linear-gradient(160deg, #e85d7a 40%, #6ec5ff 40%);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  border-radius: 24px 30px 30px 24px;
+  background: linear-gradient(165deg, #f47d89, #cf3f62);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35), inset 0 -5px 0 rgba(0,0,0,0.16);
   position: relative;
 }
-.home-jar::after {
-  content: "↔";
+.home-car::before {
+  content: "";
   position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  font-size: 2rem;
-  color: rgba(255,255,255,0.85);
+  left: 27px;
+  top: 11px;
+  width: 47px;
+  height: 37px;
+  border-radius: 15px 15px 9px 9px;
+  background: linear-gradient(135deg, #d9f3f5, #4b8d9d);
+  border: 3px solid rgba(255,255,255,0.46);
+}
+.home-car::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: -5px;
+  height: 11px;
+  border-left: 12px solid #141c22;
+  border-right: 12px solid #141c22;
+  border-radius: 3px;
 }
 .home-actions {
   display: flex;

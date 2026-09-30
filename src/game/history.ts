@@ -1,4 +1,4 @@
-import { cloneBoard } from './engine';
+import { cloneBoard, isWon } from './engine';
 import type { BoardState } from './types';
 
 export interface UndoSnapshot {
@@ -11,7 +11,7 @@ export function takeUndoSnapshot(
   history: UndoHistory,
   board: BoardState | null,
 ): UndoSnapshot | null {
-  if (!board || board.blocks.length === 0) return null;
+  if (!board || isWon(board)) return null;
   return history.pop();
 }
 

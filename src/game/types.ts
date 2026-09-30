@@ -1,9 +1,8 @@
-/** Soft candy / jam jar color tokens. */
+/** SlideJam's original pastel palette, reused by jars and traffic vehicles. */
 export type ColorId = 'R' | 'G' | 'B' | 'Y' | 'P' | 'O';
 
 export const COLORS: readonly ColorId[] = ['R', 'G', 'B', 'Y', 'P', 'O'] as const;
 
-/** Soft candy / jam palette (original — not Color Block Jam). */
 export const COLOR_HEX: Record<ColorId, string> = {
   R: '#e85d7a',
   G: '#5ecf8e',
@@ -14,11 +13,19 @@ export const COLOR_HEX: Record<ColorId, string> = {
 };
 
 export type Axis = 'H' | 'V';
+export type GameMode = 'jars' | 'traffic';
+export type VehicleKind = 'car' | 'bus' | 'truck';
 
 export interface ExitDef {
   x: number;
   y: number;
   color: ColorId;
+}
+
+export interface TrafficExitDef {
+  side: 'right';
+  /** Zero-based row occupied by the target vehicle's exit lane. */
+  lane: number;
 }
 
 export interface BlockDef {
@@ -29,6 +36,8 @@ export interface BlockDef {
   h: number;
   color: ColorId;
   axis: Axis;
+  /** Omitted for legacy jar levels; traffic vehicles default to a car. */
+  vehicleKind?: VehicleKind;
 }
 
 export interface LevelDef {
@@ -38,6 +47,10 @@ export interface LevelDef {
   walls: [number, number][];
   exits: ExitDef[];
   blocks: BlockDef[];
+  /** Legacy levels default to jars; level 1 introduces lane-based traffic. */
+  mode?: GameMode;
+  targetId?: string;
+  trafficExit?: TrafficExitDef;
 }
 
 export interface BlockState {
@@ -48,14 +61,18 @@ export interface BlockState {
   h: number;
   color: ColorId;
   axis: Axis;
+  vehicleKind: VehicleKind;
 }
 
 export interface BoardState {
   w: number;
   h: number;
+  mode: GameMode;
+  targetId?: string;
+  trafficExit?: TrafficExitDef;
   /** Set of "x,y" wall cells. */
   walls: Set<string>;
-  /** Map "x,y" → color. */
+  /** Map "x,y" → color for legacy jar exits. */
   exits: Map<string, ColorId>;
   blocks: BlockState[];
 }
