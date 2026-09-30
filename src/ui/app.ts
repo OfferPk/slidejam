@@ -3,12 +3,14 @@
  * Slide-to-exit (NOT GlowGrid place/clear). Soft candy / jam jars theme.
  */
 import {
+  axisAllows,
   cloneBoard,
   hintMove,
   isWon,
   loadBoard,
   slideBlock,
 } from '../game/engine';
+import { getBoardKeyboardAction } from './keyboard';
 import {
   loadPersist,
   savePersist,
@@ -66,6 +68,9 @@ export function mountApp(root: HTMLElement): void {
   };
 
   root.append(el.home, el.levels, el.play, el.win, el.overlay, el.toast);
+  el.toast.setAttribute('role', 'status');
+  el.toast.setAttribute('aria-live', 'polite');
+  el.toast.setAttribute('aria-atomic', 'true');
 
   setInterstitialPresenter(async (reason) => {
     await showModalStub(
@@ -255,9 +260,15 @@ export function mountApp(root: HTMLElement): void {
 
     const wrap = div('canvas-wrap');
     const canvas = document.createElement('canvas');
-    canvas.setAttribute('aria-label', 'SlideJam board');
+    canvas.setAttribute('aria-label', 'SlideJam puzzle board');
+    canvas.setAttribute('aria-describedby', 'board-help');
+    canvas.tabIndex = 0;
     wrap.append(canvas);
-    el.play.append(wrap);
+    const help = div('play-help');
+    help.id = 'board-help';
+    help.textContent =
+      'Tap or click a jar, then swipe or drag along its arrow. Keyboard: focus the board, press Enter to cycle jars, then use arrow keys to slide. Ctrl/⌘+Z undoes a move.';
+    el.play.append(wrap, help);
 
     const tools = div('play-tools');
     tools.append(
@@ -332,25 +343,77 @@ export function mountApp(root: HTMLElement): void {
       }
       if (!dir) return;
 
-      sliding = true;
-      undoStack.push(cloneBoard(board));
-      const result = slideBlock(board, id, dir);
-      if (result.moved === 0) {
-        undoStack.pop();
-        showToast('Blocked');
-      } else if (!persist.mute) {
-        /* sfx stub */
-      }
-      selectedId = id;
-      sliding = false;
-
-      if (board && isWon(board)) {
-        await onWin();
-      }
+      await moveBlock(id, dir);
     };
 
     canvas.addEventListener('pointerup', (e) => void endDrag(e));
     canvas.addEventListener('pointercancel', (e) => void endDrag(e));
+    canvas.addEventListener('keydown', onBoardKeyDown);
+  }
+
+  function onBoardKeyDown(e: KeyboardEvent): void {
+    if (!board || screen !== 'play' || sliding) return;
+    const action = getBoardKeyboardAction(e.key, e);
+    if (!action) return;
+    e.preventDefault();
+
+    if (action.type === 'select-next') {
+      if (board.blocks.length === 0) return;
+      const currentIndex = board.blocks.findIndex((block) => block.id === selectedId);
+      const nextIndex = (currentIndex + 1) % board.blocks.length;
+      selectedId = board.blocks[nextIndex]!.id;
+      hintId = null;
+      showToast(`Selected jar ${nextIndex + 1} of ${board.blocks.length}`);
+      return;
+    }
+    if (action.type === 'undo') {
+      doUndo();
+      return;
+    }
+
+    if (!selectedId) {
+      showToast('Press Enter to select a jar first');
+      return;
+    }
+    const selected = board.blocks.find((block) => block.id === selectedId);
+    if (!selected) {
+      selectedId = null;
+      return;
+    }
+    if (!axisAllows(selected.axis, action.dir)) {
+      showToast(
+        selected.axis === 'H'
+          ? 'Use left or right to slide this jar'
+          : 'Use up or down to slide this jar',
+      );
+      return;
+    }
+    void moveBlock(selected.id, action.dir, true);
+  }
+
+  async function moveBlock(id: string, dir: Dir, announce = false): Promise<void> {
+    if (!board || sliding) return;
+    sliding = true;
+    undoStack.push(cloneBoard(board));
+    const result = slideBlock(board, id, dir);
+    if (result.moved === 0) {
+      undoStack.pop();
+      selectedId = id;
+      showToast('Blocked');
+      sliding = false;
+      return;
+    }
+    if (!persist.mute) {
+      /* sfx stub */
+    }
+    hintId = null;
+    selectedId = result.cleared ? null : id;
+    if (announce) {
+      const directionName = { L: 'left', R: 'right', U: 'up', D: 'down' }[dir];
+      showToast(result.cleared ? 'Jar cleared' : `Slid ${directionName}`);
+    }
+    sliding = false;
+    if (board && isWon(board)) await onWin();
   }
 
   function resizeCanvas(canvas: HTMLCanvasElement): void {
