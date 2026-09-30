@@ -5,6 +5,8 @@
 ### Added
 - Converted level IDs 2–4 into original 6×6 traffic puzzles with lane-locked cars and buses/trucks, a visible right-side exit, and solver-confirmed shortest routes of 5, 6, and 7 slides.
 - Converted further hidden jar-source boards into genuine lane-based traffic puzzles, with valid vehicle geometry, visible exits, and shortest routes that advance one slide at a time.
+- Converted Levels 7–8 into new 6×6 traffic layouts with lane-locked cars and buses, visible right-side exits, and solver-verified shortest routes of 10 and 11 slides.
+- Archived the original Level 7–8 jar-source records under `src/levels/legacy/`; unconverted Levels 9–50 remain hidden from play.
 - Kept every unconverted legacy jar board outside the playable catalog and archived the replaced source records under `src/levels/legacy/`.
 - Added solver-backed geometry, overlap, legal/blocked move, target-exit completion, solution-depth, progression, accessibility, and keyboard E2E coverage; existing pointer/touch controls remain unchanged.
 

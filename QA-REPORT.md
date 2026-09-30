@@ -16,6 +16,22 @@ This addendum records the conversion follow-up from clean `main` commit `6dc6369
 
 Keyboard, touch/pointer, undo, and hint controls were not replaced; original Canvas-drawn vehicle artwork is retained. The replaced jar-source records are archived under `src/levels/legacy/`.
 
+## Traffic conversion follow-up — Levels 7–8 — 2026-09-30
+
+This addendum records the next conversion from clean `main` commit `735676bbbebd4fca924dd6aeae88f7a00ba8985f`. Levels 7–8 are registered as original lane-constrained traffic layouts; their previous jar records are preserved under `src/levels/legacy/`, and Levels 9–50 remain unregistered.
+
+| Check | Result |
+|---|---|
+| Active catalog | **PASS** — Levels 1–8 only; each is a 6×6 traffic board with a horizontal red target and visible right-side EXIT. |
+| Geometry and lanes | **PASS** — bounds, unique vehicle IDs, no overlap, vehicle length/orientation, and rendered exit geometry are unit-checked. |
+| Solver / difficulty | **PASS** — all shortest routes replay through legal slides and exit only with the target; route depths progress 4–11, including Levels 7–8 at 10 and 11 slides. |
+| Unit tests | **PASS** — `npm test`: 42/42 across 6 files, including blocked/off-axis movement and solver-backed completion. |
+| Browser E2E | **PASS** — `npm run test:e2e`: 11/11, including blocked Level 7 movement, keyboard solves for Levels 7–8, staged unlocks, and hidden Level 9. |
+| Production build | **PASS** — `npm run build` (TypeScript, Vite, and PWA at `/slidejam/`). |
+| Patch hygiene | **PASS** — `git diff --check`. |
+
+Touch/pointer, keyboard, undo, hint, and accessibility features remain in place.
+
 ---
 
 **Date:** 2026-09-28 18:36 PKT (Asia/Karachi)  

@@ -10,7 +10,8 @@ The repository retains older jar-puzzle source records, but unconverted boards s
 | **Slug** | `slidejam` |
 | **Pages base** | `/slidejam/` |
 | **Stack** | Vite + TypeScript + Canvas + PWA |
-| **Playable coverage** | Solver-validated traffic catalog |
+| **Playable coverage** | Levels 1–8; solver routes increase from 4 to 11 lane slides |
+| **Hidden coverage** | Unconverted Levels 9–50 remain outside the playable catalog |
 
 ## Play
 
@@ -53,7 +54,7 @@ npm test
 npm run test:e2e
 ```
 
-Unit tests validate every registered board's geometry, visible exit lane, solver route, legal lane moves, blocked moves, and target-exit completion. Playwright tests solve traffic levels with the keyboard and cover staged unlocking, hidden legacy levels, undo, hints, pointer use, accessibility feedback, and the win transition.
+Unit tests validate every registered board's geometry, visible exit lane, solver route, legal lane moves, blocked moves, and target-exit completion. Playwright tests solve traffic levels with the keyboard and cover staged unlocking through Level 8, hidden Levels 9–50, blocked movement, undo, hints, pointer use, accessibility feedback, and the win transition.
 
 ## Roman Urdu guide
 

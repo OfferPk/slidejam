@@ -2,14 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { blockCells, isWon, listLegalMoves, loadBoard, slideBlock, solveBoard } from '../src/game/engine';
 import type { LevelDef } from '../src/game/types';
 import { computeLayout } from '../src/render/board';
-import { getLevel, LEVELS } from '../src/levels/index';
+import { getLevel, LEVEL_COUNT, LEVELS } from '../src/levels/index';
 
 const trafficLevels = LEVELS.filter((level) => level.mode === 'traffic');
 
 describe('verified traffic level pack', () => {
-  it('exposes only converted IDs 1–6 and leaves remaining legacy IDs hidden', () => {
-    expect(trafficLevels.map((level) => level.id)).toEqual([1, 2, 3, 4, 5, 6]);
-    expect([7, 10, 25, 50].map((id) => getLevel(id))).toEqual([undefined, undefined, undefined, undefined]);
+  it('exposes only converted IDs 1–8 and leaves remaining legacy IDs hidden', () => {
+    expect(trafficLevels.map((level) => level.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(LEVEL_COUNT).toBe(8);
+    expect([9, 10, 25, 50].map((id) => getLevel(id))).toEqual([undefined, undefined, undefined, undefined]);
   });
 
   it.each(trafficLevels.map((level) => [level.id, level] as const))(
@@ -90,7 +91,7 @@ describe('verified traffic level pack', () => {
 
   it('raises shortest solution difficulty in one-slide steps from the live level', () => {
     const shortestLengths = trafficLevels.map((level) => solveBoard(loadBoard(level))?.length ?? -1);
-    expect(shortestLengths).toEqual([4, 5, 6, 7, 8, 9]);
+    expect(shortestLengths).toEqual([4, 5, 6, 7, 8, 9, 10, 11]);
     for (let i = 1; i < shortestLengths.length; i++) {
       expect(shortestLengths[i]!).toBeGreaterThan(shortestLengths[i - 1]!);
     }
