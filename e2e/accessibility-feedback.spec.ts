@@ -89,6 +89,8 @@ test('only converted traffic levels are exposed even when older progress unlocks
   await expect(page.getByRole('button', { name: 'Level 16', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Level 17', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Level 18', exact: true })).toBeEnabled();
-  await expect(page.getByRole('button', { name: 'Level 19', exact: true })).toHaveCount(0);
-  await expect(page.locator('.level-btn')).toHaveCount(18);
+  await expect(page.getByRole('button', { name: 'Level 19', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Level 20', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Level 21', exact: true })).toHaveCount(0);
+  await expect(page.locator('.level-btn')).toHaveCount(20);
 });

@@ -163,16 +163,18 @@ describe('legacy matching exits', () => {
 
 describe('traffic target exit and solver', () => {
   it('keeps the playable catalog at verified traffic levels and hides the rest', () => {
-    expect(LEVEL_COUNT).toBe(18);
+    expect(LEVEL_COUNT).toBe(20);
     expect(Array.from({ length: LEVEL_COUNT }, (_, index) => getLevel(index + 1)?.id))
-      .toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]);
+      .toEqual(Array.from({ length: 20 }, (_, index) => index + 1));
     expect(getLevel(13)?.mode).toBe('traffic');
     expect(getLevel(14)?.mode).toBe('traffic');
     expect(getLevel(15)?.mode).toBe('traffic');
     expect(getLevel(16)?.mode).toBe('traffic');
     expect(getLevel(17)?.mode).toBe('traffic');
     expect(getLevel(18)?.mode).toBe('traffic');
-    expect(getLevel(19)).toBeUndefined();
+    expect(getLevel(19)?.mode).toBe('traffic');
+    expect(getLevel(20)?.mode).toBe('traffic');
+    expect(getLevel(21)).toBeUndefined();
     expect(getLevel(50)).toBeUndefined();
     expect(getLevel(9)?.mode).toBe('traffic');
     expect(getLevel(10)?.mode).toBe('traffic');

@@ -26,8 +26,8 @@ SlideJam MVP: axis-locked slide-to-exit engine, 50 BFS-validated levels, undo an
 
 ## Current traffic coverage
 
-- Active playable catalog: Levels 1–18 are traffic boards with valid geometry, visible right-side exits, and replayable solver routes; shortest route depths increase one slide at a time from 4 through 21.
-- Hidden legacy content: unconverted Levels 19–50 remain unregistered; replaced jar-source records for Levels 5–18 are preserved under `src/levels/legacy/`.
+- Active playable catalog: Levels 1–20 are traffic boards with valid geometry, visible right-side exits, and replayable solver routes; shortest route depths increase one slide at a time from 4 through 23.
+- Hidden legacy content: unconverted Levels 21–50 remain unregistered; replaced jar-source records for Levels 5–20 are preserved under `src/levels/legacy/`.
 - `QA-REPORT.md` retains historical conversion follow-ups; the current traffic catalog and test gates are summarized here, while original release provenance above remains historical.
 
 Dual-clear: QA PASS + Security PASS_WITH_NOTES. Security notes are non-blocking (local progress range hardening, `.env*` ignore hygiene, dev-only Vitest audit findings, and host CSP guidance). No security code edits were made.
