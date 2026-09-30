@@ -1,5 +1,12 @@
 # Changelog
 
+## Traffic level expansion — Levels 17–18 — 2026-09-30
+
+### Added
+- Converted Levels 17–18 into genuine 6×6 lane-constrained traffic puzzles with visible right-side roads and EXITs, plus the existing distinct car, bus, and truck artwork; preserved both original jar records under `src/levels/legacy/`.
+- Solver-proven shortest routes advance difficulty by one slide, from 20 moves at Level 17 to 21 at Level 18; unconverted Levels 19–50 remain hidden.
+- Extended geometry, legal/blocked movement, target completion, archive, accessibility, and normal-progression browser coverage; keyboard, touch, undo, and hint behavior remain intact.
+
 ## Traffic level expansion — Levels 15–16 — 2026-09-30
 
 ### Added

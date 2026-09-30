@@ -5,27 +5,35 @@ import { computeLayout } from '../src/render/board';
 import { getLevel, LEVEL_COUNT, LEVELS } from '../src/levels/index';
 import levelFifteenJar from '../src/levels/legacy/level-15-jar.json';
 import levelSixteenJar from '../src/levels/legacy/level-16-jar.json';
+import levelSeventeenJar from '../src/levels/legacy/level-17-jar.json';
+import levelEighteenJar from '../src/levels/legacy/level-18-jar.json';
 
 const trafficLevels = LEVELS.filter((level) => level.mode === 'traffic');
 
 describe('verified traffic level pack', () => {
-  it('exposes only converted IDs 1–16 and leaves remaining legacy IDs hidden', () => {
-    expect(trafficLevels.map((level) => level.id)).toEqual(Array.from({ length: 16 }, (_, index) => index + 1));
-    expect(LEVEL_COUNT).toBe(16);
-    expect([17, 18, 25, 50].map((id) => getLevel(id))).toEqual([undefined, undefined, undefined, undefined]);
+  it('exposes only converted IDs 1–18 and leaves remaining legacy IDs hidden', () => {
+    expect(trafficLevels.map((level) => level.id)).toEqual(Array.from({ length: 18 }, (_, index) => index + 1));
+    expect(LEVEL_COUNT).toBe(18);
+    expect([19, 20, 25, 50].map((id) => getLevel(id))).toEqual([undefined, undefined, undefined, undefined]);
   });
 
-  it('retains the replaced Level 15–16 jar source records in the archive', () => {
+  it('retains the replaced Level 15–18 jar source records in the archive', () => {
     expect(levelFifteenJar).toMatchObject({ id: 15, walls: [[4, 3], [3, 4]] });
     expect(levelSixteenJar).toMatchObject({ id: 16, walls: [[0, 5], [5, 3], [4, 4]] });
+    expect(levelSeventeenJar).toMatchObject({ id: 17, walls: [[2, 5], [4, 2], [3, 3], [1, 0]] });
+    expect(levelEighteenJar).toMatchObject({ id: 18, walls: [[2, 5]] });
     expect(levelFifteenJar).not.toHaveProperty('mode');
     expect(levelSixteenJar).not.toHaveProperty('mode');
+    expect(levelSeventeenJar).not.toHaveProperty('mode');
+    expect(levelEighteenJar).not.toHaveProperty('mode');
     expect(levelFifteenJar.blocks).toHaveLength(2);
     expect(levelSixteenJar.blocks).toHaveLength(3);
+    expect(levelSeventeenJar.blocks).toHaveLength(3);
+    expect(levelEighteenJar.blocks).toHaveLength(3);
   });
 
-  it('gives Levels 9–16 distinct car, bus, and truck artwork with a measured difficulty increase', () => {
-    for (const id of [9, 10, 11, 12, 13, 14, 15, 16]) {
+  it('gives Levels 9–18 distinct car, bus, and truck artwork with a measured difficulty increase', () => {
+    for (const id of [9, 10, 11, 12, 13, 14, 15, 16, 17, 18]) {
       const level = getLevel(id)!;
       expect(level.blocks.map((block) => block.vehicleKind)).toEqual(
         expect.arrayContaining(['car', 'bus', 'truck']),
@@ -35,6 +43,8 @@ describe('verified traffic level pack', () => {
     expect(solveBoard(loadBoard(getLevel(14)!))?.length).toBe(17);
     expect(solveBoard(loadBoard(getLevel(15)!))?.length).toBe(18);
     expect(solveBoard(loadBoard(getLevel(16)!))?.length).toBe(19);
+    expect(solveBoard(loadBoard(getLevel(17)!))?.length).toBe(20);
+    expect(solveBoard(loadBoard(getLevel(18)!))?.length).toBe(21);
   }, 10_000);
 
   it.each(trafficLevels.map((level) => [level.id, level] as const))(
@@ -113,9 +123,9 @@ describe('verified traffic level pack', () => {
     },
   );
 
-  it('raises shortest solution difficulty in one-slide steps through Level 16', () => {
+  it('raises shortest solution difficulty in one-slide steps through Level 18', () => {
     const shortestLengths = trafficLevels.map((level) => solveBoard(loadBoard(level))?.length ?? -1);
-    expect(shortestLengths).toEqual([4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
+    expect(shortestLengths).toEqual([4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]);
     for (let i = 1; i < shortestLengths.length; i++) {
       expect(shortestLengths[i]!).toBeGreaterThan(shortestLengths[i - 1]!);
     }
@@ -154,4 +164,26 @@ describe('verified traffic level pack', () => {
     expect(board.blocks).toEqual(before);
     expect(isWon(board)).toBe(false);
   });
+
+  it.each([17, 18])('blocks the Level %i target, permits legal lane movement, and proves its full route', (id) => {
+    const board = loadBoard(getLevel(id)!);
+    const target = board.blocks.find((block) => block.id === 'target-car')!;
+
+    expect(slideBlock(board, 'target-car', 'R')).toEqual({ moved: 0, cleared: false });
+    expect(slideBlock(board, 'target-car', 'R')).toEqual({ moved: 0, cleared: false });
+    expect(slideBlock(board, 'target-car', 'U')).toEqual({ moved: 0, cleared: false });
+    expect(board.blocks.find((block) => block.id === 'target-car')).toMatchObject({ x: target.x, y: target.y });
+    expect(isWon(board)).toBe(false);
+
+    const crossingCar = board.blocks.find((block) => block.id === 'bottom-crossing-car')!;
+    const startingX = crossingCar.x;
+    const legalMove = slideBlock(board, 'bottom-crossing-car', 'R');
+    expect(legalMove.moved).toBeGreaterThan(0);
+    expect(board.blocks.find((block) => block.id === 'bottom-crossing-car')!.x)
+      .toBeGreaterThan(startingX);
+
+    const solution = solveBoard(loadBoard(getLevel(id)!));
+    expect(solution).not.toBeNull();
+    expect(solution!.length).toBe(id === 17 ? 20 : 21);
+  }, 10_000);
 });

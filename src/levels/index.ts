@@ -14,11 +14,13 @@ import levelThirteen from './level-13.json';
 import levelFourteen from './level-14.json';
 import levelFifteen from './level-15.json';
 import levelSixteen from './level-16.json';
+import levelSeventeen from './level-17.json';
+import levelEighteen from './level-18.json';
 import type { LevelDef } from '../game/types';
 
 /**
- * Levels 1–16 are verified traffic puzzles. Replaced jar sources for Levels
- * 5–16 are archived under ./legacy; unconverted Levels 17–50 remain hidden.
+ * Levels 1–18 are verified traffic puzzles. Replaced jar sources for Levels
+ * 5–18 are archived under ./legacy; unconverted Levels 19–50 remain hidden.
  */
 export const LEVELS: LevelDef[] = [
   levelOne as unknown as LevelDef,
@@ -37,6 +39,8 @@ export const LEVELS: LevelDef[] = [
   levelFourteen as unknown as LevelDef,
   levelFifteen as unknown as LevelDef,
   levelSixteen as unknown as LevelDef,
+  levelSeventeen as unknown as LevelDef,
+  levelEighteen as unknown as LevelDef,
 ];
 
 export function getLevel(id: number): LevelDef | undefined {

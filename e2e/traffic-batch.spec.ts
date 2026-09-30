@@ -7,12 +7,13 @@ test('keyboard solves Levels 13–14, confirms the visible exit, and unlocks Lev
   });
   await page.reload();
   await page.getByRole('button', { name: 'Levels', exact: true }).click();
-  await expect(page.locator('.level-btn')).toHaveCount(16);
+  await expect(page.locator('.level-btn')).toHaveCount(18);
   await expect(page.getByRole('button', { name: 'Level 13', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Level 14, locked', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Level 15, locked', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Level 16, locked', exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Level 17', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Level 17, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 18, locked', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Level 13', exact: true }).click();
 
   const solveWithKeyboard = async (moves: Array<[string, string]>, initialSelectedIndex: number) => {
@@ -126,11 +127,12 @@ test('keyboard solves Levels 13–14, confirms the visible exit, and unlocks Lev
     .toBe(15);
 
   await page.getByRole('button', { name: 'Levels', exact: true }).click();
-  await expect(page.locator('.level-btn')).toHaveCount(16);
+  await expect(page.locator('.level-btn')).toHaveCount(18);
   await expect(page.getByRole('button', { name: 'Level 13', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Level 14', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Level 15', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Level 16, locked', exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Level 17', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Level 17, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 18, locked', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Level 50', exact: true })).toHaveCount(0);
 });

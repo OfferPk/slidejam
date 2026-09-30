@@ -7,11 +7,12 @@ test('normal progression unlocks and live-plays Level 15, then unlocks Level 16'
   });
   await page.reload();
   await page.getByRole('button', { name: 'Levels', exact: true }).click();
-  await expect(page.locator('.level-btn')).toHaveCount(16);
+  await expect(page.locator('.level-btn')).toHaveCount(18);
   await expect(page.getByRole('button', { name: 'Level 14', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Level 15, locked', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Level 16, locked', exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Level 17', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Level 17, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 18, locked', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Level 14', exact: true }).click();
 
   const solveWithKeyboard = async (moves: Array<[string, string]>, initialSelectedIndex = -1) => {
@@ -140,8 +141,9 @@ test('normal progression unlocks and live-plays Level 15, then unlocks Level 16'
   await page.getByRole('button', { name: 'Hint', exact: true }).click();
   await expect(status).toHaveText('Hint: slide down');
   await page.getByRole('button', { name: 'Back to levels' }).click();
-  await expect(page.locator('.level-btn')).toHaveCount(16);
+  await expect(page.locator('.level-btn')).toHaveCount(18);
   await expect(page.getByRole('button', { name: 'Level 16', exact: true })).toBeEnabled();
-  await expect(page.getByRole('button', { name: 'Level 17', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Level 17, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 18, locked', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Level 50', exact: true })).toHaveCount(0);
 });
