@@ -31,7 +31,7 @@ Serve `dist/` under `/slidejam/`. Offline after first load via service worker.
 
 ## Controls
 
-- **Swipe / drag** a jar along its free axis (↔ horizontal or ↕ vertical)
+- **Tap / click** a jar to select it, then **swipe / drag** along its free axis (↔ horizontal or ↕ vertical)
 - Jar slides until a **wall** or **other jar**
 - When a jar **fully covers** matching-color exit pads → it clears
 - Clear all jars → win → next level unlocks

@@ -11,6 +11,7 @@ import {
   slideBlock,
 } from '../game/engine';
 import { getBoardKeyboardAction } from './keyboard';
+import { getPointerSlideAction } from './pointer';
 import {
   loadPersist,
   savePersist,
@@ -56,6 +57,8 @@ export function mountApp(root: HTMLElement): void {
   let dragStartY = 0;
   let dragDx = 0;
   let dragDy = 0;
+  let gestureDx = 0;
+  let gestureDy = 0;
   let sliding = false;
 
   const el = {
@@ -267,7 +270,7 @@ export function mountApp(root: HTMLElement): void {
     const help = div('play-help');
     help.id = 'board-help';
     help.textContent =
-      'Tap or click a jar, then swipe or drag along its arrow. Keyboard: focus the board, press Enter to cycle jars, then use arrow keys to slide. Ctrl/⌘+Z undoes a move.';
+      'Tap or click a jar to select it, then swipe or drag along its arrow. Keyboard: focus the board, press Enter to cycle jars, then use arrow keys to slide. Ctrl/⌘+Z undoes a move.';
     el.play.append(wrap, help);
 
     const tools = div('play-tools');
@@ -306,6 +309,8 @@ export function mountApp(root: HTMLElement): void {
       dragStartY = p.y;
       dragDx = 0;
       dragDy = 0;
+      gestureDx = 0;
+      gestureDy = 0;
     });
 
     canvas.addEventListener('pointermove', (e) => {
@@ -315,6 +320,8 @@ export function mountApp(root: HTMLElement): void {
       const rawDy = p.y - dragStartY;
       const b = board.blocks.find((x) => x.id === dragId);
       if (!b) return;
+      gestureDx = rawDx;
+      gestureDy = rawDy;
       if (b.axis === 'H') {
         dragDx = rawDx;
         dragDy = 0;
@@ -324,30 +331,52 @@ export function mountApp(root: HTMLElement): void {
       }
     });
 
-    const endDrag = async (_e: PointerEvent) => {
+    const endDrag = async () => {
       if (!dragId || !board) {
         dragId = null;
+        dragDx = 0;
+        dragDy = 0;
+        gestureDx = 0;
+        gestureDy = 0;
         return;
       }
       const id = dragId;
-      const dx = dragDx;
-      const dy = dragDy;
+      const dx = gestureDx;
+      const dy = gestureDy;
       dragId = null;
       dragDx = 0;
       dragDy = 0;
+      gestureDx = 0;
+      gestureDy = 0;
 
-      let dir: Dir | null = null;
-      if (Math.abs(dx) >= SWIPE_THRESHOLD || Math.abs(dy) >= SWIPE_THRESHOLD) {
-        if (Math.abs(dx) >= Math.abs(dy)) dir = dx > 0 ? 'R' : 'L';
-        else dir = dy > 0 ? 'D' : 'U';
+      const block = board.blocks.find((candidate) => candidate.id === id);
+      if (!block) return;
+      const action = getPointerSlideAction(dx, dy, block.axis, SWIPE_THRESHOLD);
+      if (!action) {
+        const index = board.blocks.findIndex((candidate) => candidate.id === id);
+        showToast(`Selected jar ${index + 1} of ${board.blocks.length}`);
+        return;
       }
-      if (!dir) return;
+      if (action.type === 'off-axis') {
+        showToast(
+          block.axis === 'H'
+            ? 'Use left or right to slide this jar'
+            : 'Use up or down to slide this jar',
+        );
+        return;
+      }
 
-      await moveBlock(id, dir);
+      await moveBlock(id, action.dir, true);
     };
 
-    canvas.addEventListener('pointerup', (e) => void endDrag(e));
-    canvas.addEventListener('pointercancel', (e) => void endDrag(e));
+    canvas.addEventListener('pointerup', () => void endDrag());
+    canvas.addEventListener('pointercancel', () => {
+      dragId = null;
+      dragDx = 0;
+      dragDy = 0;
+      gestureDx = 0;
+      gestureDy = 0;
+    });
     canvas.addEventListener('keydown', onBoardKeyDown);
   }
 
