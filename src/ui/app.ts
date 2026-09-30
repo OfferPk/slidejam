@@ -70,6 +70,7 @@ export function mountApp(root: HTMLElement): void {
     toast: div('toast'),
   };
 
+  root.setAttribute('role', 'main');
   root.append(el.home, el.levels, el.play, el.win, el.overlay, el.toast);
   el.toast.setAttribute('role', 'status');
   el.toast.setAttribute('aria-live', 'polite');
@@ -97,20 +98,66 @@ export function mountApp(root: HTMLElement): void {
     setTimeout(() => el.toast.classList.remove('show'), 1600);
   }
 
+  function dismissModal(previousFocus: HTMLElement | null): void {
+    el.overlay.className = 'overlay';
+    el.overlay.innerHTML = '';
+    if (previousFocus?.isConnected) previousFocus.focus();
+  }
+
+  function prepareModal(
+    modal: HTMLDivElement,
+    initialFocus: HTMLButtonElement,
+    onEscape: () => void,
+  ): void {
+    modal.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onEscape();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = Array.from(
+        modal.querySelectorAll<HTMLButtonElement>('button:not([disabled])'),
+      );
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) {
+        event.preventDefault();
+        return;
+      }
+      const focusIsOutside = !modal.contains(document.activeElement);
+      if (event.shiftKey && (document.activeElement === first || focusIsOutside)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || focusIsOutside)) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+    initialFocus.focus();
+  }
+
   function showModalStub(title: string, body: string, okLabel: string): Promise<void> {
     return new Promise((resolve) => {
+      const previousFocus = document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
       el.overlay.className = 'overlay open';
       el.overlay.innerHTML = '';
       const modal = div('modal');
-      modal.innerHTML = `<div class="ad-stub"><strong>${esc(title)}</strong>${esc(body).replace(/\n/g, '<br/>')}</div>`;
-      modal.append(
-        button(okLabel, 'btn block', () => {
-          el.overlay.className = 'overlay';
-          el.overlay.innerHTML = '';
-          resolve();
-        }),
-      );
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-labelledby', 'ad-stub-title');
+      modal.setAttribute('aria-describedby', 'ad-stub-description');
+      modal.innerHTML = `<div class="ad-stub"><strong id="ad-stub-title">${esc(title)}</strong><span id="ad-stub-description">${esc(body).replace(/\n/g, '<br/>')}</span></div>`;
+      const close = () => {
+        dismissModal(previousFocus);
+        resolve();
+      };
+      const continueButton = button(okLabel, 'btn block', close);
+      modal.append(continueButton);
       el.overlay.append(modal);
+      prepareModal(modal, continueButton, close);
     });
   }
 
@@ -121,31 +168,37 @@ export function mountApp(root: HTMLElement): void {
     no: string,
   ): Promise<boolean> {
     return new Promise((resolve) => {
+      const previousFocus = document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
       el.overlay.className = 'overlay open';
       el.overlay.innerHTML = '';
       const modal = div('modal');
-      modal.innerHTML = `<div class="ad-stub"><strong>${esc(title)}</strong>${esc(body).replace(/\n/g, '<br/>')}</div>`;
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-labelledby', 'ad-stub-title');
+      modal.setAttribute('aria-describedby', 'ad-stub-description');
+      modal.innerHTML = `<div class="ad-stub"><strong id="ad-stub-title">${esc(title)}</strong><span id="ad-stub-description">${esc(body).replace(/\n/g, '<br/>')}</span></div>`;
       const row = div('');
       row.style.display = 'flex';
       row.style.gap = '8px';
-      row.append(
-        button(no, 'btn secondary', () => {
-          el.overlay.className = 'overlay';
-          el.overlay.innerHTML = '';
-          resolve(false);
-        }),
-        button(yes, 'btn', () => {
-          el.overlay.className = 'overlay';
-          el.overlay.innerHTML = '';
-          resolve(true);
-        }),
-      );
+      const cancel = () => {
+        dismissModal(previousFocus);
+        resolve(false);
+      };
+      const confirm = () => {
+        dismissModal(previousFocus);
+        resolve(true);
+      };
+      const cancelButton = button(no, 'btn secondary', cancel);
+      row.append(cancelButton, button(yes, 'btn', confirm));
       modal.append(row);
       el.overlay.append(modal);
+      prepareModal(modal, cancelButton, cancel);
     });
   }
 
-  function setScreen(s: Screen): void {
+  function setScreen(s: Screen, moveFocus = true): void {
     screen = s;
     for (const k of ['home', 'levels', 'play', 'win'] as const) {
       el[k].classList.toggle('active', k === s);
@@ -157,6 +210,16 @@ export function mountApp(root: HTMLElement): void {
       renderPlayShell();
       startLoop();
     } else if (s === 'win') renderWin();
+    if (moveFocus) focusScreen(s);
+  }
+
+  function focusScreen(s: Screen): void {
+    const target = s === 'play'
+      ? el.play.querySelector<HTMLElement>('canvas')
+      : el[s].querySelector<HTMLElement>('h1, h2');
+    if (!target) return;
+    if (s !== 'play') target.tabIndex = -1;
+    target.focus({ preventScroll: true });
   }
 
   function renderHome(): void {
@@ -180,13 +243,12 @@ export function mountApp(root: HTMLElement): void {
     el.home.append(actions);
 
     const settings = div('settings-row');
-    settings.append(
-      button(persist.mute ? 'Unmute' : 'Mute', 'btn ghost', () => {
+    const muteButton = button(persist.mute ? 'Unmute' : 'Mute', 'btn ghost', () => {
         persist = savePersist({ mute: !persist.mute });
+        muteButton.textContent = persist.mute ? 'Unmute' : 'Mute';
         showToast(persist.mute ? 'Muted' : 'Sound on (stub)');
-        renderHome();
-      }),
-      button(
+      });
+    const removeAdsButton = button(
         isAdsRemoved() ? 'Ads removed' : 'Remove ads',
         'btn ghost',
         async () => {
@@ -196,11 +258,11 @@ export function mountApp(root: HTMLElement): void {
           }
           await purchaseRemoveAds();
           persist = loadPersist();
+          removeAdsButton.textContent = isAdsRemoved() ? 'Ads removed' : 'Remove ads';
           showToast('Remove-ads stub applied');
-          renderHome();
         },
-      ),
-    );
+      );
+    settings.append(muteButton, removeAdsButton);
     el.home.append(settings);
     const note = div('home-note');
     note.textContent = `Unlocked ${persist.unlocked}/${LEVEL_COUNT} · proj_slidejam_001`;
@@ -223,6 +285,7 @@ export function mountApp(root: HTMLElement): void {
       const btn = document.createElement('button');
       btn.className = 'level-btn' + (locked ? ' locked' : '') + (i === persist.unlocked ? ' current' : '');
       btn.textContent = locked ? '🔒' : String(i);
+      btn.setAttribute('aria-label', locked ? `Level ${i}, locked` : `Level ${i}`);
       btn.disabled = locked;
       if (!locked) {
         btn.addEventListener('click', () => startLevel(i));
@@ -248,29 +311,31 @@ export function mountApp(root: HTMLElement): void {
   function renderPlayShell(): void {
     el.play.innerHTML = '';
     const bar = div('play-bar');
-    const title = div('title');
+    const title = document.createElement('h2');
+    title.className = 'title';
     title.textContent = `Level ${levelId}`;
-    bar.append(
-      button('←', 'btn ghost', () => setScreen('levels')),
-      title,
-      button(persist.mute ? '🔇' : '🔊', 'btn ghost', () => {
+    const backButton = button('←', 'btn ghost', () => setScreen('levels'));
+    backButton.setAttribute('aria-label', 'Back to levels');
+    const muteButton = button(persist.mute ? '🔇' : '🔊', 'btn ghost', () => {
         persist = savePersist({ mute: !persist.mute });
-        renderPlayShell();
-        startLoop();
-      }),
-    );
+        muteButton.textContent = persist.mute ? '🔇' : '🔊';
+        muteButton.setAttribute('aria-label', persist.mute ? 'Unmute sound' : 'Mute sound');
+      });
+    muteButton.setAttribute('aria-label', persist.mute ? 'Unmute sound' : 'Mute sound');
+    bar.append(backButton, title, muteButton);
     el.play.append(bar);
 
     const wrap = div('canvas-wrap');
     const canvas = document.createElement('canvas');
-    canvas.setAttribute('aria-label', 'SlideJam puzzle board');
+    canvas.setAttribute('role', 'group');
+    canvas.setAttribute('aria-label', `Level ${levelId} puzzle board`);
     canvas.setAttribute('aria-describedby', 'board-help');
     canvas.tabIndex = 0;
     wrap.append(canvas);
     const help = div('play-help');
     help.id = 'board-help';
     help.textContent =
-      'Tap or click a jar to select it, then swipe or drag along its arrow. Keyboard: focus the board, press Enter to cycle jars, then use arrow keys to slide. Ctrl/⌘+Z undoes a move.';
+      'Tap or click a jar, then swipe or drag along its arrow. The board receives focus when a level opens. Press Enter to cycle jars, then use the arrow keys; Ctrl/⌘+Z undoes a move.';
     el.play.append(wrap, help);
 
     const tools = div('play-tools');
@@ -566,7 +631,7 @@ export function mountApp(root: HTMLElement): void {
     }
   });
 
-  setScreen('home');
+  setScreen('home', false);
 }
 
 function div(className: string, id?: string): HTMLDivElement {

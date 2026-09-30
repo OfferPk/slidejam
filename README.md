@@ -32,6 +32,7 @@ Serve `dist/` under `/slidejam/`. Offline after first load via service worker.
 ## Controls
 
 - **Tap / click** a jar to select it, then **swipe / drag** along its free axis (↔ horizontal or ↕ vertical)
+- **Keyboard:** the board receives focus when a level opens; press **Enter** to cycle jars, then use the arrow matching the jar's axis. **Ctrl/⌘+Z** undoes the last move.
 - Jar slides until a **wall** or **other jar**
 - When a jar **fully covers** matching-color exit pads → it clears
 - Clear all jars → win → next level unlocks

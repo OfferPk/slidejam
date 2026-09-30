@@ -11,7 +11,7 @@ test('Ctrl+Z undoes a keyboard slide and restores the jar position', async ({ pa
   await page.reload();
   await page.getByRole('button', { name: 'Play', exact: true }).click();
 
-  const board = page.locator('canvas[aria-label="SlideJam puzzle board"]');
+  const board = page.locator('canvas[aria-label="Level 4 puzzle board"]');
   await expect(board).toBeVisible();
   await board.focus();
   await page.keyboard.press('Enter');
@@ -31,7 +31,7 @@ test('off-axis keyboard input explains the valid slide directions', async ({ pag
   await page.goto('/');
   await page.getByRole('button', { name: 'Play', exact: true }).click();
 
-  const board = page.locator('canvas[aria-label="SlideJam puzzle board"]');
+  const board = page.locator('canvas[aria-label="Level 1 puzzle board"]');
   await expect(board).toBeVisible();
   await board.focus();
   await page.keyboard.press('Enter');
