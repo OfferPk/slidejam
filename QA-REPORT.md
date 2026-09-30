@@ -207,3 +207,20 @@ This conversion started from the requested clean `main` commit `d9adb910ca291376
 | Patch hygiene | **PASS** — `git diff --check`. |
 
 Keyboard, touch/pointer, undo, hint, and accessibility behavior remain intact. Existing original CSS and Canvas/SVG vehicle artwork were reused without external assets.
+
+
+## Traffic conversion follow-up — Levels 15–16 — 2026-09-30
+
+This conversion started from clean `main` commit `61a359eafbf0b7dee05bc436c28e32acdfaa1a20` and existing Pages commit `73204917e18eac6d94e7ccdceb47186d1b7b9275`. Original jar-source records for Levels 15–16 are archived under `src/levels/legacy/`; only verified traffic boards through Level 16 are registered, and unconverted Levels 17–50 remain hidden.
+
+| Check | Result |
+|---|---|
+| Active catalog | **PASS** — sixteen playable traffic boards use 6×6 lane geometry, visible right-side roads/EXITs, and car, bus, and truck vehicles. |
+| Geometry and lanes | **PASS** — bounds, unique IDs, non-overlap, axis/length, target lane, rendered exit geometry, legal/blocked movement, and target-only exit completion are tested. |
+| Solver / difficulty | **PASS** — solver-proven shortest routes replay through legal slides and the target exit; route depth progresses one slide at a time from 4 through 19, with Levels 15–16 at 18 and 19. |
+| Unit tests | **PASS** — `npm test`: 61/61 across 6 files. |
+| Browser E2E | **PASS** — `npm run test:e2e`: 15/15, including normal Level 14 → Level 15 play, Level 15 completion, Level 16 unlock, blocked/off-axis moves, and hidden Level 17+. |
+| Production build | **PASS** — `npm run build` (`tsc && vite build`) with PWA assets under `/slidejam/`. |
+| Patch hygiene | **PASS** — `git diff --check`. |
+
+Keyboard, touch/pointer, undo, hint, and accessibility behavior remain intact. Existing Canvas vehicle artwork and the visible lane/exit renderer were reused without external assets.

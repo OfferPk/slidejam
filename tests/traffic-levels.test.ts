@@ -3,18 +3,29 @@ import { blockCells, isWon, listLegalMoves, loadBoard, slideBlock, solveBoard } 
 import type { LevelDef } from '../src/game/types';
 import { computeLayout } from '../src/render/board';
 import { getLevel, LEVEL_COUNT, LEVELS } from '../src/levels/index';
+import levelFifteenJar from '../src/levels/legacy/level-15-jar.json';
+import levelSixteenJar from '../src/levels/legacy/level-16-jar.json';
 
 const trafficLevels = LEVELS.filter((level) => level.mode === 'traffic');
 
 describe('verified traffic level pack', () => {
-  it('exposes only converted IDs 1–14 and leaves remaining legacy IDs hidden', () => {
-    expect(trafficLevels.map((level) => level.id)).toEqual(Array.from({ length: 14 }, (_, index) => index + 1));
-    expect(LEVEL_COUNT).toBe(14);
-    expect([15, 16, 25, 50].map((id) => getLevel(id))).toEqual([undefined, undefined, undefined, undefined]);
+  it('exposes only converted IDs 1–16 and leaves remaining legacy IDs hidden', () => {
+    expect(trafficLevels.map((level) => level.id)).toEqual(Array.from({ length: 16 }, (_, index) => index + 1));
+    expect(LEVEL_COUNT).toBe(16);
+    expect([17, 18, 25, 50].map((id) => getLevel(id))).toEqual([undefined, undefined, undefined, undefined]);
   });
 
-  it('gives Levels 9–14 distinct car, bus, and truck artwork with a measured difficulty increase', () => {
-    for (const id of [9, 10, 11, 12, 13, 14]) {
+  it('retains the replaced Level 15–16 jar source records in the archive', () => {
+    expect(levelFifteenJar).toMatchObject({ id: 15, walls: [[4, 3], [3, 4]] });
+    expect(levelSixteenJar).toMatchObject({ id: 16, walls: [[0, 5], [5, 3], [4, 4]] });
+    expect(levelFifteenJar).not.toHaveProperty('mode');
+    expect(levelSixteenJar).not.toHaveProperty('mode');
+    expect(levelFifteenJar.blocks).toHaveLength(2);
+    expect(levelSixteenJar.blocks).toHaveLength(3);
+  });
+
+  it('gives Levels 9–16 distinct car, bus, and truck artwork with a measured difficulty increase', () => {
+    for (const id of [9, 10, 11, 12, 13, 14, 15, 16]) {
       const level = getLevel(id)!;
       expect(level.blocks.map((block) => block.vehicleKind)).toEqual(
         expect.arrayContaining(['car', 'bus', 'truck']),
@@ -22,6 +33,8 @@ describe('verified traffic level pack', () => {
     }
     expect(solveBoard(loadBoard(getLevel(13)!))?.length).toBe(16);
     expect(solveBoard(loadBoard(getLevel(14)!))?.length).toBe(17);
+    expect(solveBoard(loadBoard(getLevel(15)!))?.length).toBe(18);
+    expect(solveBoard(loadBoard(getLevel(16)!))?.length).toBe(19);
   }, 10_000);
 
   it.each(trafficLevels.map((level) => [level.id, level] as const))(
@@ -100,9 +113,9 @@ describe('verified traffic level pack', () => {
     },
   );
 
-  it('raises shortest solution difficulty in one-slide steps through Level 14', () => {
+  it('raises shortest solution difficulty in one-slide steps through Level 16', () => {
     const shortestLengths = trafficLevels.map((level) => solveBoard(loadBoard(level))?.length ?? -1);
-    expect(shortestLengths).toEqual([4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]);
+    expect(shortestLengths).toEqual([4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
     for (let i = 1; i < shortestLengths.length; i++) {
       expect(shortestLengths[i]!).toBeGreaterThan(shortestLengths[i - 1]!);
     }
@@ -132,7 +145,7 @@ describe('verified traffic level pack', () => {
     expect(isWon(board)).toBe(false);
   });
 
-  it.each([9, 10, 11, 12, 13, 14])('keeps the Level %i target blocked until its lane is clear', (id) => {
+  it.each([9, 10, 11, 12, 13, 14, 15, 16])('keeps the Level %i target blocked until its lane is clear', (id) => {
     const board = loadBoard(getLevel(id)!);
     const before = board.blocks.map((block) => ({ ...block }));
 
