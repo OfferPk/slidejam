@@ -32,7 +32,7 @@ test('traffic level preserves controls and wins only when the target car reaches
   await page.keyboard.press('Enter');
   await expect(page.getByRole('status')).toHaveText('Selected bus 2 of 4');
   await page.keyboard.press('ArrowDown');
-  await expect(page.getByRole('status')).toHaveText('Blocked');
+  await expect(page.getByRole('status')).toHaveText('No space remains to the down');
 
   await page.keyboard.press('Enter');
   await expect(page.getByRole('status')).toHaveText('Selected truck 3 of 4');

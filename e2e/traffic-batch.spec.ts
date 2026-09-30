@@ -50,7 +50,7 @@ test('keyboard solves Levels 13–14, confirms the visible exit, and unlocks Lev
   // The red target cannot pass the vehicle in its lane or change lanes.
   await page.keyboard.press('Enter');
   await page.keyboard.press('ArrowRight');
-  await expect(status).toHaveText('Blocked');
+  await expect(status).toHaveText('No space remains to the right');
   await page.keyboard.press('ArrowUp');
   await expect(status).toHaveText('Use left or right to move this vehicle along its lane');
   await expect(level13Target).toContainText('row 3, columns 1 to 2');
@@ -94,7 +94,7 @@ test('keyboard solves Levels 13–14, confirms the visible exit, and unlocks Lev
 
   await page.keyboard.press('Enter');
   await page.keyboard.press('ArrowRight');
-  await expect(status).toHaveText('Blocked');
+  await expect(status).toHaveText('No space remains to the right');
   await page.keyboard.press('ArrowUp');
   await expect(status).toHaveText('Use left or right to move this vehicle along its lane');
 

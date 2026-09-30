@@ -63,6 +63,35 @@ test('pointer dragging slides the target only along its lane and updates its acc
     .toHaveText('Red target car, moves only left or right along its lane, at row 3, columns 2 to 3.');
 });
 
+test('explains blocked directions without moving and keeps perpendicular lane guidance', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+
+  const target = page.locator('#vehicle-descriptions li[data-vehicle-id="target-car"]');
+  const status = page.getByRole('status');
+  const initialPosition = 'Red target car, moves only left or right along its lane, at row 3, columns 1 to 2.';
+
+  await page.keyboard.press('Enter');
+  await expect(target).toHaveText(initialPosition);
+
+  await page.keyboard.press('ArrowLeft');
+  await expect(status).toHaveText('No space remains to the left');
+  await expect(target).toHaveText(initialPosition);
+
+  await page.keyboard.press('ArrowUp');
+  await expect(status).toHaveText('Use left or right to move this vehicle along its lane');
+  await expect(target).toHaveText(initialPosition);
+
+  await page.keyboard.press('ArrowRight');
+  await expect(status).toHaveText('Slid right');
+  const movedPosition = 'Red target car, moves only left or right along its lane, at row 3, columns 2 to 3.';
+  await expect(target).toHaveText(movedPosition);
+
+  await page.keyboard.press('ArrowRight');
+  await expect(status).toHaveText('No space remains to the right');
+  await expect(target).toHaveText(movedPosition);
+});
+
 test('only converted traffic levels are exposed even when older progress unlocks were saved', async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => {

@@ -562,7 +562,7 @@ export function mountApp(root: HTMLElement): void {
     if (result.moved === 0) {
       undoHistory.pop();
       selectedId = id;
-      showToast('Blocked');
+      showToast(`No space remains to the ${DIRECTION_NAMES[dir]}`);
       sliding = false;
       return;
     }

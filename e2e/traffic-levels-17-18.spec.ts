@@ -86,7 +86,7 @@ test('normal progression live-plays Levels 17–18 and confirms the 20-level cat
   // The target is blocked from its start, off-axis motion is rejected, and a legal crossing-car move can be undone.
   await page.keyboard.press('Enter');
   await page.keyboard.press('ArrowRight');
-  await expect(status).toHaveText('Blocked');
+  await expect(status).toHaveText('No space remains to the right');
   await expect(target17).toContainText('row 3, columns 1 to 2');
   await page.keyboard.press('ArrowUp');
   await expect(status).toHaveText('Use left or right to move this vehicle along its lane');

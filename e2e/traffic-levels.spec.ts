@@ -176,7 +176,7 @@ test('Level 7 blocks the target until traffic clears, then Levels 7–8 solve an
   // Level 7 starts with traffic directly in the target's lane.
   await page.keyboard.press('Enter');
   await page.keyboard.press('ArrowRight');
-  await expect(status).toHaveText('Blocked');
+  await expect(status).toHaveText('No space remains to the right');
   await expect(target).toContainText('row 3, columns 1 to 2');
 
   const solveWithKeyboard = async (moves: Array<[string, string]>, initialSelectedIndex = -1) => {
@@ -299,7 +299,7 @@ test('keyboard solves Levels 9–10, preserves blocked moves, hints and undo, an
   await page.keyboard.press('ArrowUp');
   await expect(status).toHaveText('Use left or right to move this vehicle along its lane');
   await page.keyboard.press('ArrowRight');
-  await expect(status).toHaveText('Blocked');
+  await expect(status).toHaveText('No space remains to the right');
   await expect(target).toContainText('row 3, columns 1 to 2');
 
   // A legal move can be undone; Hint still gives the solver's first direction.
@@ -432,7 +432,7 @@ test('keyboard solves Levels 11–12, blocks illegal moves, and unlocks only ver
   // The target is blocked at its starting square; it cannot change to a vertical lane.
   await page.keyboard.press('Enter');
   await page.keyboard.press('ArrowRight');
-  await expect(status).toHaveText('Blocked');
+  await expect(status).toHaveText('No space remains to the right');
   await page.keyboard.press('ArrowUp');
   await expect(status).toHaveText('Use left or right to move this vehicle along its lane');
   await expect(target).toContainText('row 3, columns 1 to 2');

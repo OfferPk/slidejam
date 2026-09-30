@@ -82,7 +82,7 @@ test('normal progression unlocks and live-plays Level 15, then unlocks Level 16'
   // Illegal target movement stays blocked, while a legal move can be undone and hinted.
   await page.keyboard.press('Enter');
   await page.keyboard.press('ArrowRight');
-  await expect(status).toHaveText('Blocked');
+  await expect(status).toHaveText('No space remains to the right');
   await expect(target15).toContainText('row 3, columns 1 to 2');
   await page.keyboard.press('ArrowUp');
   await expect(status).toHaveText('Use left or right to move this vehicle along its lane');
@@ -137,7 +137,7 @@ test('normal progression unlocks and live-plays Level 15, then unlocks Level 16'
     .toContainText('rows 3 to 4');
   await page.keyboard.press('Enter');
   await page.keyboard.press('ArrowRight');
-  await expect(status).toHaveText('Blocked');
+  await expect(status).toHaveText('No space remains to the right');
   await page.getByRole('button', { name: 'Hint', exact: true }).click();
   await expect(status).toHaveText('Hint: slide down');
   await page.getByRole('button', { name: 'Back to levels' }).click();
