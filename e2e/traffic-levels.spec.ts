@@ -8,12 +8,12 @@ test('fresh progress locks converted levels and never exposes unconverted jar le
   await page.reload();
   await page.getByRole('button', { name: 'Levels', exact: true }).click();
 
-  await expect(page.locator('.level-btn')).toHaveCount(4);
+  await expect(page.locator('.level-btn')).toHaveCount(6);
   await expect(page.getByRole('button', { name: 'Level 1', exact: true })).toBeEnabled();
-  for (const id of [2, 3, 4]) {
+  for (const id of [2, 3, 4, 5, 6]) {
     await expect(page.getByRole('button', { name: `Level ${id}, locked`, exact: true })).toBeDisabled();
   }
-  await expect(page.getByRole('button', { name: 'Level 5', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Level 7', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Level 50', exact: true })).toHaveCount(0);
 });
 
@@ -80,5 +80,61 @@ test('keyboard solves converted Level 2, completes only at EXIT, and unlocks Lev
   await page.getByRole('button', { name: 'Levels', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Level 3', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Level 4, locked', exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Level 5', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Level 5, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 6, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 7', exact: true })).toHaveCount(0);
+});
+
+test('keyboard solves converted Level 5 and unlocks Level 6 only after the target exits', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => {
+    localStorage.setItem('slidejam_v1', JSON.stringify({ unlocked: 5, adsRemoved: false, mute: false }));
+  });
+  await page.reload();
+  await page.getByRole('button', { name: 'Levels', exact: true }).click();
+  await page.getByRole('button', { name: 'Level 5', exact: true }).click();
+
+  const board = page.getByRole('group', {
+    name: 'Level 5 traffic puzzle board with an exit on the right',
+  });
+  await expect(board).toBeFocused();
+  await expect(board).toHaveAccessibleDescription(/EXIT on the right/);
+  await expect(page.locator('#vehicle-descriptions li[data-vehicle-id="center-bus"]')).toContainText('bus');
+
+  const vehicleIds = await page.locator('#vehicle-descriptions li').evaluateAll((items) =>
+    items.map((item) => (item as HTMLLIElement).dataset.vehicleId!),
+  );
+  const solution: Array<[string, string]> = [
+    ['right-lane-car', 'ArrowUp'],
+    ['lower-left-car', 'ArrowUp'],
+    ['center-bus', 'ArrowUp'],
+    ['lower-middle-car', 'ArrowUp'],
+    ['bottom-crossing-car', 'ArrowLeft'],
+    ['junction-bus', 'ArrowDown'],
+    ['center-bus', 'ArrowDown'],
+    ['target-car', 'ArrowRight'],
+  ];
+  let selectedIndex = -1;
+  for (const [vehicleId, key] of solution) {
+    const nextIndex = vehicleIds.indexOf(vehicleId);
+    expect(nextIndex).toBeGreaterThanOrEqual(0);
+    if (selectedIndex < 0) {
+      await page.keyboard.press('Enter');
+      selectedIndex = 0;
+    }
+    while (selectedIndex !== nextIndex) {
+      await page.keyboard.press('Enter');
+      selectedIndex = (selectedIndex + 1) % vehicleIds.length;
+    }
+    await page.keyboard.press(key);
+  }
+
+  const target = page.locator('#vehicle-descriptions li[data-vehicle-id="target-car"]');
+  await expect(page.getByRole('dialog', { name: 'Ad stub — Interstitial' })).toBeVisible();
+  await expect(target).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('heading', { name: 'Target vehicle escaped!' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Next level', exact: true })).toBeVisible();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('slidejam_v1') ?? '{}').unlocked))
+    .toBe(6);
 });

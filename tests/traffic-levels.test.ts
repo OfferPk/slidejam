@@ -7,9 +7,9 @@ import { getLevel, LEVELS } from '../src/levels/index';
 const trafficLevels = LEVELS.filter((level) => level.mode === 'traffic');
 
 describe('verified traffic level pack', () => {
-  it('exposes only converted IDs 1–4 and leaves remaining legacy IDs hidden', () => {
-    expect(trafficLevels.map((level) => level.id)).toEqual([1, 2, 3, 4]);
-    expect([5, 10, 25, 50].map((id) => getLevel(id))).toEqual([undefined, undefined, undefined, undefined]);
+  it('exposes only converted IDs 1–6 and leaves remaining legacy IDs hidden', () => {
+    expect(trafficLevels.map((level) => level.id)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect([7, 10, 25, 50].map((id) => getLevel(id))).toEqual([undefined, undefined, undefined, undefined]);
   });
 
   it.each(trafficLevels.map((level) => [level.id, level] as const))(
@@ -27,6 +27,7 @@ describe('verified traffic level pack', () => {
       expect(target).toMatchObject({ x: 0, y: level.trafficExit!.lane, w: 2, h: 1, axis: 'H', color: 'R', vehicleKind: 'car' });
 
       const occupied = new Set<string>();
+      expect(new Set(level.blocks.map((block) => block.id)).size).toBe(level.blocks.length);
       for (const vehicle of level.blocks) {
         expect(vehicle.id.length).toBeGreaterThan(0);
         if (vehicle.axis === 'H') {
@@ -89,7 +90,7 @@ describe('verified traffic level pack', () => {
 
   it('raises shortest solution difficulty in one-slide steps from the live level', () => {
     const shortestLengths = trafficLevels.map((level) => solveBoard(loadBoard(level))?.length ?? -1);
-    expect(shortestLengths).toEqual([4, 5, 6, 7]);
+    expect(shortestLengths).toEqual([4, 5, 6, 7, 8, 9]);
     for (let i = 1; i < shortestLengths.length; i++) {
       expect(shortestLengths[i]!).toBeGreaterThan(shortestLengths[i - 1]!);
     }

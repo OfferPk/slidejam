@@ -1,8 +1,8 @@
 # SlideJam
 
-Offline **traffic-jam slide puzzle**. The playable game currently contains four complete 6×6 traffic levels (IDs 1–4): slide cars, buses, and trucks only along their lanes until the red target car can leave through the right-side **EXIT**. These are genuine traffic layouts, not restyled jar boards.
+Offline **traffic-jam slide puzzle**. The playable catalog contains complete 6×6 traffic levels: slide cars, buses, and trucks only along their lanes until the red target car can leave through the right-side **EXIT**. These are genuine traffic layouts, not restyled jar boards.
 
-The repository still contains 46 older jar-puzzle level files (IDs 5–50), but they are **not exposed as playable levels** until they are converted to traffic rules and checked for geometry and solvability. The game menu offers only the four verified traffic levels; it will not send players to the unrevised jar boards.
+The repository retains older jar-puzzle source records, but unconverted boards stay **hidden from the playable menu** until they follow traffic rules and pass geometry and solver checks. Replaced jar-source records are preserved under `src/levels/legacy/` rather than discarded.
 
 | | |
 |--|--|
@@ -10,7 +10,7 @@ The repository still contains 46 older jar-puzzle level files (IDs 5–50), but 
 | **Slug** | `slidejam` |
 | **Pages base** | `/slidejam/` |
 | **Stack** | Vite + TypeScript + Canvas + PWA |
-| **Playable coverage** | Four solver-validated traffic levels (IDs 1–4) |
+| **Playable coverage** | Solver-validated traffic catalog |
 
 ## Play
 
@@ -40,7 +40,7 @@ Serve `dist/` under `/slidejam/`. The app can work offline after its service wor
 
 1. Traffic-mode road grid with original Canvas-drawn cars, bus, truck, lane markings, and a visible exit.
 2. Axis-locked collision engine and bounded breadth-first solver for traffic hints and level-solvability tests.
-3. Four active traffic levels; 46 unrevised jar level files (IDs 5–50) are not selectable or reachable from the game UI.
+3. Solver-verified traffic levels; unconverted jar-source boards are not selectable or reachable from the game UI.
 4. Pointer/touch dragging, keyboard movement and selection, undo, hint, restart, and level selection.
 5. Screen-reader descriptions and polite move feedback; keyboard focus and modal behavior remain supported.
 6. Local progress and settings; ad and purchase integrations remain stubs.
@@ -53,7 +53,7 @@ npm test
 npm run test:e2e
 ```
 
-Unit tests validate every active board’s geometry, visible exit lane, solver route, legal lane moves, blocked moves, and target-exit completion. Playwright tests solve Level 2 with the keyboard and cover staged unlocking, hidden legacy levels, undo, hints, pointer use, accessibility feedback, and the win transition.
+Unit tests validate every registered board's geometry, visible exit lane, solver route, legal lane moves, blocked moves, and target-exit completion. Playwright tests solve traffic levels with the keyboard and cover staged unlocking, hidden legacy levels, undo, hints, pointer use, accessibility feedback, and the win transition.
 
 ## Roman Urdu guide
 

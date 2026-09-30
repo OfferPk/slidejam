@@ -2,19 +2,19 @@
 
 ## Traffic conversion follow-up — 2026-09-30
 
-This addendum applies to the current playable catalog and supersedes the original MVP's level-count claims below; the 2026-09-28 report remains the historical audit of that release. The worktree was based on `main` commit `07b86cf4a962dbfe84c55c1dc39275be723d1209`.
+This addendum records the conversion follow-up from clean `main` commit `6dc6369051ba85f5a52832ac5fb954cfa11e8918`. The 2026-09-28 report remains the historical audit of the original release; unconverted jar-source levels are still kept out of the playable catalog.
 
 | Check | Result |
 |---|---|
-| Active catalog | **PASS** — only Levels 1–4 are registered; all are 6×6 traffic boards with a horizontal red target and a right-side EXIT. Legacy jar Levels 5–50 remain hidden. |
-| Geometry and lanes | **PASS** — vehicle orientation/length, board bounds, non-overlap, target lane, and rendered exit layout are solver-backed unit assertions. |
-| Solver / difficulty | **PASS** — every shortest route replays through legal moves and reaches completion on the target's final move; shortest move counts are 4, 5, 6, and 7. |
-| Unit tests | **PASS** — `npm test`: 38/38 across 6 files, including blocked/off-axis movement and completion checks. |
-| Browser E2E | **PASS** — `npm run test:e2e`: 9/9, including keyboard completion of Level 2, unlock progression, hidden legacy IDs, accessibility feedback, and pointer input. |
+| Active catalog | **PASS** — only verified traffic definitions are registered; each has a 6×6 road, horizontal red target, and visible right-side EXIT. Unconverted jar-source levels remain hidden. |
+| Geometry and lanes | **PASS** — vehicle orientation/length, board bounds, unique IDs, non-overlap, target lane, and rendered exit layout have unit assertions. |
+| Solver / difficulty | **PASS** — shortest solver routes replay through legal lane slides and finish only when the target exits; route depth rises by one slide at each progression step. |
+| Unit tests | **PASS** — `npm test`: 40/40 across 6 files, including blocked/off-axis movement and solver-backed completion checks. |
+| Browser E2E | **PASS** — `npm run test:e2e`: 10/10, including keyboard completion of the new Level 5, gated progression, hidden legacy IDs, accessibility feedback, and pointer input. |
 | Production build | **PASS** — `npm run build` with Vite/PWA at base `/slidejam/`. |
 | Patch hygiene | **PASS** — `git diff --check`. |
 
-Keyboard and touch/pointer controls were not replaced; original Canvas-drawn vehicle artwork is retained.
+Keyboard, touch/pointer, undo, and hint controls were not replaced; original Canvas-drawn vehicle artwork is retained. The replaced jar-source records are archived under `src/levels/legacy/`.
 
 ---
 

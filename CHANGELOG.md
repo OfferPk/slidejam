@@ -4,8 +4,9 @@
 
 ### Added
 - Converted level IDs 2–4 into original 6×6 traffic puzzles with lane-locked cars and buses/trucks, a visible right-side exit, and solver-confirmed shortest routes of 5, 6, and 7 slides.
-- Kept all unrevised legacy jar boards (IDs 5–50) outside the playable catalog.
-- Added geometry, overlap, legal/blocked move, target-exit completion, solution-depth, progression, accessibility, and keyboard E2E coverage; existing pointer/touch controls remain unchanged.
+- Converted further hidden jar-source boards into genuine lane-based traffic puzzles, with valid vehicle geometry, visible exits, and shortest routes that advance one slide at a time.
+- Kept every unconverted legacy jar board outside the playable catalog and archived the replaced source records under `src/levels/legacy/`.
+- Added solver-backed geometry, overlap, legal/blocked move, target-exit completion, solution-depth, progression, accessibility, and keyboard E2E coverage; existing pointer/touch controls remain unchanged.
 
 ## 0.1.0 — 2026-09-28
 
