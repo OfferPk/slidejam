@@ -174,3 +174,20 @@ Base: `http://127.0.0.1:4193/slidejam`
 | Tip SHA amended? | **No** — remains `39bc276` (MVP `19bf079` intact) |
 
 Report only — no product code changes, no GitHub push, no agent messages.
+
+
+## Traffic conversion follow-up — Levels 11–12 — 2026-09-30
+
+This addendum records the requested clean checkout from `main` commit `8bf619e` and existing Pages tip `c0d2d3b`. Original jar records for Levels 11–12 are preserved under `src/levels/legacy/`; only solver-verified traffic boards through Level 12 are registered, and unconverted Levels 13–50 remain hidden.
+
+| Check | Result |
+|---|---|
+| Active catalog | **PASS** — Levels 1–12 are playable traffic boards with 6×6 lane geometry, visible road/EXIT, and distinct car, bus, and truck vehicles. |
+| Geometry and lanes | **PASS** — bounds, unique IDs, non-overlap, axis/length, target lane, and rendered exit geometry are tested across the catalog. |
+| Solver / difficulty | **PASS** — shortest routes replay through legal slides and target exit; route depth advances one slide at a time from 4 through 15, with Levels 11–12 at 14 and 15. |
+| Unit tests | **PASS** — `npm test`: 52/52 across 6 files, including geometry, legal/blocked/off-axis movement, solver-backed completion, and availability. |
+| Browser E2E | **PASS** — `npm run test:e2e`: 13/13, including keyboard solves for Levels 11–12, blocked moves, staged unlocks, hidden Levels 13–50, accessibility, undo/hint, and pointer input. |
+| Production build | **PASS** — `npm run build` (`tsc && vite build`) with PWA assets under `/slidejam/`. |
+| Patch hygiene | **PASS** — `git diff --check`. |
+
+Keyboard, touch/pointer, undo, hint, and accessibility behavior remain intact. Original CSS and Canvas/SVG vehicle art were reused without external assets.

@@ -17,6 +17,13 @@
 - Solver-confirmed shortest routes extend the one-slide progression to 12 and 13 moves; original jar records are preserved under `src/levels/legacy/` and unconverted Levels 11–50 stay hidden.
 - Extended geometry, collision, completion, unlock, accessibility, keyboard, undo, hint, and browser coverage; the original Canvas artwork and touch controls remain in place.
 
+## Traffic level expansion — Levels 11–12 — 2026-09-30
+
+### Added
+- Converted Levels 11–12 into distinct 6×6 lane-constrained traffic boards with a visible right-side EXIT, cars, a bus, and a truck.
+- Solver-proven shortest routes continue the one-slide progression at 14 and 15 moves; original jar records are preserved under `src/levels/legacy/`, while Levels 13–50 remain hidden.
+- Extended solver, geometry, blocked/legal move, completion, availability, and keyboard E2E coverage; existing CSS/Canvas vehicle art and touch, undo, hint, and accessibility behavior remain unchanged.
+
 ## 0.1.0 — 2026-09-28
 
 ### Added
