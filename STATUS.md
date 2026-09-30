@@ -15,8 +15,8 @@
 |------|--------|
 | QA | **PASS** — report: `QA-REPORT.md` |
 | Security | **PASS_WITH_NOTES** — clear to ship; no blockers; report: `SECURITY-REPORT.md` |
-| `npm test` | **42/42 passed** across 6 files |
-| `npm run test:e2e` | **11/11 passed** |
+| `npm test` | **48/48 passed** across 6 files |
+| `npm run test:e2e` | **12/12 passed** |
 | `npm run build` | **green** (Vite + TypeScript + PWA; base `/slidejam/`) |
 | `git diff --check` | **PASS** |
 
@@ -26,9 +26,9 @@ SlideJam MVP: axis-locked slide-to-exit engine, 50 BFS-validated levels, undo an
 
 ## Current traffic coverage
 
-- Active playable catalog: Levels 1–8 are traffic boards with valid geometry, visible right-side exits, and replayable solver routes; shortest route depths increase one slide at a time from 4 through 11.
-- Hidden legacy content: unconverted Levels 9–50 remain unregistered; replaced jar-source records for Levels 5–8 are preserved under `src/levels/legacy/`.
-- Conversion follow-up verification is recorded in the addendum at the top of `QA-REPORT.md`; original release provenance above remains historical.
+- Active playable catalog: Levels 1–10 are traffic boards with valid geometry, visible right-side exits, and replayable solver routes; shortest route depths increase one slide at a time from 4 through 13.
+- Hidden legacy content: unconverted Levels 11–50 remain unregistered; replaced jar-source records for Levels 5–10 are preserved under `src/levels/legacy/`.
+- Latest conversion follow-up verification is recorded in `QA-REPORT.md`; original release provenance above remains historical.
 
 Dual-clear: QA PASS + Security PASS_WITH_NOTES. Security notes are non-blocking (local progress range hardening, `.env*` ignore hygiene, dev-only Vitest audit findings, and host CSP guidance). No security code edits were made.
 

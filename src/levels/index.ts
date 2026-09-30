@@ -6,11 +6,13 @@ import levelFive from './level-05.json';
 import levelSix from './level-06.json';
 import levelSeven from './level-07.json';
 import levelEight from './level-08.json';
+import levelNine from './level-09.json';
+import levelTen from './level-10.json';
 import type { LevelDef } from '../game/types';
 
 /**
- * Levels 1–8 are verified traffic puzzles. Replaced jar sources for Levels
- * 5–8 are archived under ./legacy; unconverted Levels 9–50 remain hidden.
+ * Levels 1–10 are verified traffic puzzles. Replaced jar sources for Levels
+ * 5–10 are archived under ./legacy; unconverted Levels 11–50 remain hidden.
  */
 export const LEVELS: LevelDef[] = [
   levelOne as unknown as LevelDef,
@@ -21,6 +23,8 @@ export const LEVELS: LevelDef[] = [
   levelSix as unknown as LevelDef,
   levelSeven as unknown as LevelDef,
   levelEight as unknown as LevelDef,
+  levelNine as unknown as LevelDef,
+  levelTen as unknown as LevelDef,
 ];
 
 export function getLevel(id: number): LevelDef | undefined {

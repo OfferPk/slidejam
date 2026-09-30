@@ -4,9 +4,9 @@
 
 ## 1. Yeh project kya hai?
 
-SlideJam ek **traffic-jam slide puzzle** hai. Abhi chaar mukammal **6×6 traffic levels (1–4)** khelne ke liye khule hain: laal target car ko uski lane mein slide karo, traffic ko move karo, phir target car ko right-side **EXIT** se bahar nikalo. Har gaari apni lane tak mehdood rehti hai.
+SlideJam ek **traffic-jam slide puzzle** hai. Abhi das mukammal **6×6 traffic levels (1–10)** khelne ke liye khule hain: laal target car ko uski lane mein slide karo, traffic ko move karo, phir target car ko right-side **EXIT** se bahar nikalo. Har gaari apni lane tak mehdood rehti hai.
 
-Repo mein purane 46 jar-puzzle level files (IDs 5–50) abhi maujood hain, lekin woh game menu mein **playable nahi** hain. Unhein traffic rules mein convert, geometry-check aur solvability-check karne ke baad hi dobara khola jayega; is liye player ko kisi unrevised jar board par nahi bheja jayega.
+Repo mein purane jar-puzzle records mojood hain; converted IDs 5–10 ke asal records `src/levels/legacy/` mein archive hain, aur unconverted Levels 11–50 menu mein **playable nahi** hain. Kisi board ko traffic rules, geometry, aur solvability checks ke baad hi menu mein rakha jata hai, is liye player ko unrevised jar board par nahi bheja jayega.
 
 Traffic level mein gaariyan apni lane tak mehdood hain: horizontal gaari left/right, vertical gaari up/down slide karti hai. Gaari doosri traffic ke andar se nahi guzar sakti. Target car exit se nikal jaye to level jeet jate ho; baqi gaariyan board par reh sakti hain.
 
@@ -58,7 +58,7 @@ Koi login nahi — game local / offline hai. Account zaroori nahi.
 
 - **Board blank / path galat:** Vite `base: '/slidejam/'` — Pages par isi path se serve karo.
 - **Touch kaam nahi:** Browser zoom / overlay check; canvas pe seedha lane ki direction mein drag karo.
-- **Koi aur level nazar nahi aata:** Levels 1–4 verified traffic puzzles hain; purane jar layouts (5–50) jaan bujh kar hidden hain jab tak woh convert aur verify na hon.
+- **Koi aur level nazar nahi aata:** Levels 1–10 verified traffic puzzles hain; unconverted jar layouts (11–50) jaan bujh kar hidden hain jab tak woh convert aur verify na hon.
 - **PWA update nahi:** Hard refresh / service-worker update; `npm run build` ke baad naya deploy.
 
 ## 8. Security / privacy tips

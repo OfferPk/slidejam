@@ -162,17 +162,24 @@ describe('legacy matching exits', () => {
 });
 
 describe('traffic target exit and solver', () => {
+  it('keeps the playable catalog at verified traffic levels and hides the rest', () => {
+    expect(LEVEL_COUNT).toBe(10);
+    expect(Array.from({ length: LEVEL_COUNT }, (_, index) => getLevel(index + 1)?.id))
+      .toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(getLevel(11)).toBeUndefined();
+    expect(getLevel(50)).toBeUndefined();
+    expect(getLevel(9)?.mode).toBe('traffic');
+    expect(getLevel(10)?.mode).toBe('traffic');
+  });
+
   it('level 1 visibly declares a right-side target exit and includes a bus and truck', () => {
-    expect(LEVEL_COUNT).toBe(8);
-    expect([getLevel(1)?.id, getLevel(2)?.id, getLevel(3)?.id, getLevel(4)?.id, getLevel(5)?.id, getLevel(6)?.id, getLevel(7)?.id, getLevel(8)?.id])
-      .toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     expect(trafficLevel.mode).toBe('traffic');
     expect(trafficLevel.targetId).toBe('target-car');
     expect(trafficLevel.trafficExit).toEqual({ side: 'right', lane: 2 });
     expect(trafficLevel.blocks.map((block) => block.vehicleKind)).toContain('bus');
     expect(trafficLevel.blocks.map((block) => block.vehicleKind)).toContain('truck');
-    expect(getLevel(9)).toBeUndefined();
-    expect(getLevel(10)).toBeUndefined();
+    expect(getLevel(11)).toBeUndefined();
+    expect(getLevel(50)).toBeUndefined();
   });
 
   it('solves level 1 using legal lane slides and wins only after the target exits', () => {

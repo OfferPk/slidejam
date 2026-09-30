@@ -10,6 +10,13 @@
 - Kept every unconverted legacy jar board outside the playable catalog and archived the replaced source records under `src/levels/legacy/`.
 - Added solver-backed geometry, overlap, legal/blocked move, target-exit completion, solution-depth, progression, accessibility, and keyboard E2E coverage; existing pointer/touch controls remain unchanged.
 
+## Traffic level expansion — Levels 9–10 — 2026-09-30
+
+### Added
+- Converted Levels 9–10 into lane-constrained 6×6 traffic puzzles with a visible right-side EXIT and distinct car, bus, and truck vehicles.
+- Solver-confirmed shortest routes extend the one-slide progression to 12 and 13 moves; original jar records are preserved under `src/levels/legacy/` and unconverted Levels 11–50 stay hidden.
+- Extended geometry, collision, completion, unlock, accessibility, keyboard, undo, hint, and browser coverage; the original Canvas artwork and touch controls remain in place.
+
 ## 0.1.0 — 2026-09-28
 
 ### Added

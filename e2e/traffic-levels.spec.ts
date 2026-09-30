@@ -8,12 +8,12 @@ test('fresh progress locks converted levels and never exposes unconverted jar le
   await page.reload();
   await page.getByRole('button', { name: 'Levels', exact: true }).click();
 
-  await expect(page.locator('.level-btn')).toHaveCount(8);
+  await expect(page.locator('.level-btn')).toHaveCount(10);
   await expect(page.getByRole('button', { name: 'Level 1', exact: true })).toBeEnabled();
-  for (const id of [2, 3, 4, 5, 6, 7, 8]) {
+  for (const id of [2, 3, 4, 5, 6, 7, 8, 9, 10]) {
     await expect(page.getByRole('button', { name: `Level ${id}, locked`, exact: true })).toBeDisabled();
   }
-  await expect(page.getByRole('button', { name: 'Level 9', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Level 11', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Level 50', exact: true })).toHaveCount(0);
 });
 
@@ -84,6 +84,8 @@ test('keyboard solves converted Level 2, completes only at EXIT, and unlocks Lev
   await expect(page.getByRole('button', { name: 'Level 6, locked', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Level 7, locked', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Level 8, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 9, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 10, locked', exact: true })).toBeDisabled();
 });
 
 test('keyboard solves converted Level 5 and unlocks Level 6 only after the target exits', async ({ page }) => {
@@ -147,9 +149,12 @@ test('Level 7 blocks the target until traffic clears, then Levels 7–8 solve an
   });
   await page.reload();
   await page.getByRole('button', { name: 'Levels', exact: true }).click();
-  await expect(page.locator('.level-btn')).toHaveCount(8);
+  await expect(page.locator('.level-btn')).toHaveCount(10);
   await expect(page.getByRole('button', { name: 'Level 7', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Level 8, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 9, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 10, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 11', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Level 7', exact: true }).click();
 
   const board = page.getByRole('group', {
@@ -237,11 +242,141 @@ test('Level 7 blocks the target until traffic clears, then Levels 7–8 solve an
   await expect(page.getByRole('heading', { name: 'Target vehicle escaped!' })).toBeVisible();
   await expect(page.getByText('Traffic cleared. The red target car reached EXIT.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Replay', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Next level', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Next level', exact: true })).toBeVisible();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('slidejam_v1') ?? '{}').unlocked))
-    .toBe(8);
+    .toBe(9);
   await page.getByRole('button', { name: 'Levels', exact: true }).click();
-  await expect(page.locator('.level-btn')).toHaveCount(8);
+  await expect(page.locator('.level-btn')).toHaveCount(10);
   await expect(page.getByRole('button', { name: 'Level 8', exact: true })).toBeEnabled();
-  await expect(page.getByRole('button', { name: 'Level 9', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Level 9', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Level 10, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 11', exact: true })).toHaveCount(0);
+});
+
+test('keyboard solves Levels 9–10, preserves blocked moves, hints and undo, and unlocks exactly ten levels', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => {
+    localStorage.setItem('slidejam_v1', JSON.stringify({ unlocked: 9, adsRemoved: false, mute: false }));
+  });
+  await page.reload();
+  await page.getByRole('button', { name: 'Levels', exact: true }).click();
+  await expect(page.locator('.level-btn')).toHaveCount(10);
+  await expect(page.getByRole('button', { name: 'Level 9', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Level 10, locked', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Level 11', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Level 9', exact: true }).click();
+
+  const board = page.getByRole('group', {
+    name: 'Level 9 traffic puzzle board with an exit on the right',
+  });
+  const status = page.getByRole('status');
+  const target = page.locator('#vehicle-descriptions li[data-vehicle-id="target-car"]');
+  await expect(board).toBeFocused();
+  await expect(board).toHaveAccessibleDescription(/EXIT on the right/);
+  await expect(target).toContainText('row 3, columns 1 to 2');
+  await expect(page.locator('#vehicle-descriptions li[data-vehicle-id="center-truck"]'))
+    .toContainText('truck');
+  await expect(page.locator('#vehicle-descriptions li[data-vehicle-id="top-row-car"]'))
+    .toContainText('row 1, columns 4 to 5');
+
+  // Off-axis and blocked target moves leave the target in place.
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('ArrowUp');
+  await expect(status).toHaveText('Use left or right to move this vehicle along its lane');
+  await page.keyboard.press('ArrowRight');
+  await expect(status).toHaveText('Blocked');
+  await expect(target).toContainText('row 3, columns 1 to 2');
+
+  // A legal move can be undone; Hint still gives the solver's first direction.
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('ArrowDown');
+  await expect(page.locator('#vehicle-descriptions li[data-vehicle-id="right-lane-car"]'))
+    .toContainText('rows 4 to 5');
+  await page.keyboard.press('Control+z');
+  await expect(status).toHaveText('Undo');
+  await expect(page.locator('#vehicle-descriptions li[data-vehicle-id="right-lane-car"]'))
+    .toContainText('rows 3 to 4');
+  await page.getByRole('button', { name: 'Hint', exact: true }).click();
+  await expect(status).toHaveText('Hint: slide down');
+  await board.focus();
+
+  const solveWithKeyboard = async (moves: Array<[string, string]>, initialSelectedIndex: number) => {
+    const vehicleIds = await page.locator('#vehicle-descriptions li').evaluateAll((items) =>
+      items.map((item) => (item as HTMLLIElement).dataset.vehicleId!),
+    );
+    let selectedIndex = initialSelectedIndex;
+    for (const [vehicleId, key] of moves) {
+      const nextIndex = vehicleIds.indexOf(vehicleId);
+      expect(nextIndex).toBeGreaterThanOrEqual(0);
+      while (selectedIndex !== nextIndex) {
+        await page.keyboard.press('Enter');
+        selectedIndex = (selectedIndex + 1) % vehicleIds.length;
+      }
+      await page.keyboard.press(key);
+    }
+  };
+
+  await solveWithKeyboard([
+    ['right-lane-car', 'ArrowDown'],
+    ['lower-left-car', 'ArrowUp'],
+    ['lower-middle-car', 'ArrowUp'],
+    ['upper-crossing-car', 'ArrowLeft'],
+    ['upper-lane-car', 'ArrowUp'],
+    ['top-row-car', 'ArrowRight'],
+    ['center-approach-car', 'ArrowUp'],
+    ['center-truck', 'ArrowUp'],
+    ['bottom-crossing-car', 'ArrowLeft'],
+    ['junction-bus', 'ArrowDown'],
+    ['center-truck', 'ArrowDown'],
+    ['target-car', 'ArrowRight'],
+  ], 1);
+
+  await expect(page.getByRole('dialog', { name: 'Ad stub — Interstitial' })).toBeVisible();
+  await expect(target).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('heading', { name: 'Target vehicle escaped!' })).toBeVisible();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('slidejam_v1') ?? '{}').unlocked))
+    .toBe(10);
+  await page.getByRole('button', { name: 'Next level', exact: true }).click();
+
+  const level10Board = page.getByRole('group', {
+    name: 'Level 10 traffic puzzle board with an exit on the right',
+  });
+  const level10Target = page.locator('#vehicle-descriptions li[data-vehicle-id="target-car"]');
+  await expect(level10Board).toBeFocused();
+  await expect(level10Board).toHaveAccessibleDescription(/EXIT on the right/);
+  await expect(page.locator('#vehicle-descriptions li[data-vehicle-id="upper-lane-car"]'))
+    .toContainText('column 3, rows 3 to 4');
+  await expect(page.locator('#vehicle-descriptions li[data-vehicle-id="center-truck"]'))
+    .toContainText('truck');
+
+  await solveWithKeyboard([
+    ['right-lane-car', 'ArrowDown'],
+    ['lower-left-car', 'ArrowUp'],
+    ['upper-crossing-car', 'ArrowLeft'],
+    ['upper-lane-car', 'ArrowUp'],
+    ['target-car', 'ArrowRight'],
+    ['lower-middle-car', 'ArrowUp'],
+    ['top-row-car', 'ArrowRight'],
+    ['center-approach-car', 'ArrowUp'],
+    ['center-truck', 'ArrowUp'],
+    ['bottom-crossing-car', 'ArrowLeft'],
+    ['junction-bus', 'ArrowDown'],
+    ['center-truck', 'ArrowDown'],
+    ['target-car', 'ArrowRight'],
+  ], -1);
+
+  await expect(page.getByRole('dialog', { name: 'Ad stub — Interstitial' })).toBeVisible();
+  await expect(level10Target).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('heading', { name: 'Target vehicle escaped!' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Next level', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Levels', exact: true }).click();
+  await expect(page.locator('.level-btn')).toHaveCount(10);
+  for (let id = 1; id <= 10; id++) {
+    await expect(page.getByRole('button', { name: `Level ${id}`, exact: true })).toBeEnabled();
+  }
+  await expect(page.getByRole('button', { name: 'Level 11', exact: true })).toHaveCount(0);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('slidejam_v1') ?? '{}').unlocked))
+    .toBe(10);
 });

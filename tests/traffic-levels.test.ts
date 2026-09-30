@@ -7,10 +7,21 @@ import { getLevel, LEVEL_COUNT, LEVELS } from '../src/levels/index';
 const trafficLevels = LEVELS.filter((level) => level.mode === 'traffic');
 
 describe('verified traffic level pack', () => {
-  it('exposes only converted IDs 1–8 and leaves remaining legacy IDs hidden', () => {
-    expect(trafficLevels.map((level) => level.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
-    expect(LEVEL_COUNT).toBe(8);
-    expect([9, 10, 25, 50].map((id) => getLevel(id))).toEqual([undefined, undefined, undefined, undefined]);
+  it('exposes only converted IDs 1–10 and leaves remaining legacy IDs hidden', () => {
+    expect(trafficLevels.map((level) => level.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(LEVEL_COUNT).toBe(10);
+    expect([11, 12, 25, 50].map((id) => getLevel(id))).toEqual([undefined, undefined, undefined, undefined]);
+  });
+
+  it('gives Levels 9–10 car, bus, and truck artwork with a measured difficulty increase', () => {
+    for (const id of [9, 10]) {
+      const level = getLevel(id)!;
+      expect(level.blocks.map((block) => block.vehicleKind)).toEqual(
+        expect.arrayContaining(['car', 'bus', 'truck']),
+      );
+    }
+    expect(solveBoard(loadBoard(getLevel(9)!))?.length).toBe(12);
+    expect(solveBoard(loadBoard(getLevel(10)!))?.length).toBe(13);
   });
 
   it.each(trafficLevels.map((level) => [level.id, level] as const))(
@@ -91,7 +102,7 @@ describe('verified traffic level pack', () => {
 
   it('raises shortest solution difficulty in one-slide steps from the live level', () => {
     const shortestLengths = trafficLevels.map((level) => solveBoard(loadBoard(level))?.length ?? -1);
-    expect(shortestLengths).toEqual([4, 5, 6, 7, 8, 9, 10, 11]);
+    expect(shortestLengths).toEqual([4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
     for (let i = 1; i < shortestLengths.length; i++) {
       expect(shortestLengths[i]!).toBeGreaterThan(shortestLengths[i - 1]!);
     }
@@ -117,6 +128,16 @@ describe('verified traffic level pack', () => {
 
     expect(slideBlock(board, 'target-car', 'U')).toEqual({ moved: 0, cleared: false });
     expect(slideBlock(board, 'target-car', 'R')).toEqual({ moved: 0, cleared: false });
+    expect(board.blocks).toEqual(before);
+    expect(isWon(board)).toBe(false);
+  });
+
+  it.each([9, 10])('keeps the Level %i target blocked until its lane is clear', (id) => {
+    const board = loadBoard(getLevel(id)!);
+    const before = board.blocks.map((block) => ({ ...block }));
+
+    expect(slideBlock(board, 'target-car', 'R')).toEqual({ moved: 0, cleared: false });
+    expect(slideBlock(board, 'target-car', 'U')).toEqual({ moved: 0, cleared: false });
     expect(board.blocks).toEqual(before);
     expect(isWon(board)).toBe(false);
   });

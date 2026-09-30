@@ -32,6 +32,22 @@ This addendum records the next conversion from clean `main` commit `735676bbbebd
 
 Touch/pointer, keyboard, undo, hint, and accessibility features remain in place.
 
+## Traffic conversion follow-up — Levels 9–10 — 2026-09-30
+
+This addendum follows a clean checkout at requested `main` commit `0b26462d427db5aff067360d80097282a33cea11` and the existing Pages tip `d8626ef99576f8e44fab9c6f485c8ec87045a91b`. The old Level 9–10 jar records are preserved under `src/levels/legacy/`; only solver-verified traffic boards are registered, and Levels 11–50 remain hidden.
+
+| Check | Result |
+|---|---|
+| Active catalog | **PASS** — Levels 1–10 only; each has a valid 6×6 traffic layout, red target, and visible right-side EXIT. |
+| Geometry and lanes | **PASS** — bounds, orientation/length, unique IDs, non-overlap, and exit geometry are checked for all ten levels. |
+| Solver / difficulty | **PASS** — shortest routes advance one legal slide at a time from 4 through 13; Levels 9 and 10 solve in 12 and 13 slides. |
+| Unit tests | **PASS** — `npm test`: 48/48 across 6 files, including blocked/off-axis movement and solver-backed completion. |
+| Browser E2E | **PASS** — `npm run test:e2e`: 12/12, including keyboard solutions for Levels 9–10, staged availability, blocked moves, undo, hints, pointer input, and accessibility feedback. |
+| Production build | **PASS** — `npm run build` (TypeScript, Vite, and PWA at `/slidejam/`). |
+| Patch hygiene | **PASS** — `git diff --check`. |
+
+Keyboard, touch/pointer, undo, hint, and accessible DOM behavior remain intact. No external artwork was added; existing original vehicle artwork is reused.
+
 ---
 
 **Date:** 2026-09-28 18:36 PKT (Asia/Karachi)  
