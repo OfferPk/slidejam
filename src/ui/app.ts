@@ -666,6 +666,15 @@ export function mountApp(root: HTMLElement): void {
   }
 
   async function doRestart(): Promise<void> {
+    if (undoHistory.canUndo) {
+      const confirmed = await showModalStubConfirm(
+        'Restart this level?',
+        `Restart Level ${levelId}? Your current moves will be lost.`,
+        'Restart',
+        'Keep playing',
+      );
+      if (!confirmed) return;
+    }
     await showInterstitial('restart');
     startLevel(levelId);
   }
