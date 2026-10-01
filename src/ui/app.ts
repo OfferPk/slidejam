@@ -66,6 +66,8 @@ export function mountApp(root: HTMLElement): void {
   let levelId = 1;
   let board: BoardState | null = null;
   const undoHistory = new UndoHistory();
+  let moveCount = 0;
+  let moveCountDisplay: HTMLParagraphElement | null = null;
   let undoButton: HTMLButtonElement | null = null;
   let selectedId: string | null = null;
   let hintId: string | null = null;
@@ -324,6 +326,7 @@ export function mountApp(root: HTMLElement): void {
     levelId = id;
     board = loadBoard(def);
     undoHistory.clear();
+    moveCount = 0;
     selectedId = null;
     hintId = null;
     freeHintsLeft = 1;
@@ -374,6 +377,14 @@ export function mountApp(root: HTMLElement): void {
     el.play.append(wrap, help, vehicleDescriptions);
     syncVehicleDescriptions();
 
+    moveCountDisplay = document.createElement('p');
+    moveCountDisplay.id = 'move-count';
+    moveCountDisplay.className = 'move-count';
+    moveCountDisplay.setAttribute('aria-live', 'polite');
+    moveCountDisplay.setAttribute('aria-atomic', 'true');
+    el.play.append(moveCountDisplay);
+    syncMoveCount();
+
     const tools = div('play-tools');
     undoButton = button('Undo', 'btn secondary', () => doUndo());
     tools.append(
@@ -391,6 +402,12 @@ export function mountApp(root: HTMLElement): void {
   function syncUndoButton(): void {
     if (undoButton) {
       undoButton.disabled = !undoHistory.canUndo || !board || isWon(board);
+    }
+  }
+
+  function syncMoveCount(): void {
+    if (moveCountDisplay) {
+      moveCountDisplay.textContent = `Moves this attempt: ${moveCount}`;
     }
   }
 
@@ -580,6 +597,8 @@ export function mountApp(root: HTMLElement): void {
       /* sfx stub */
     }
     hintId = null;
+    moveCount++;
+    syncMoveCount();
     selectedId = result.cleared ? null : id;
     syncVehicleDescriptions();
     syncUndoButton();
@@ -638,6 +657,8 @@ export function mountApp(root: HTMLElement): void {
     }
     board = previous.board;
     selectedId = previous.selectedId;
+    moveCount = Math.max(0, moveCount - 1);
+    syncMoveCount();
     hintId = null;
     syncVehicleDescriptions();
     syncUndoButton();
