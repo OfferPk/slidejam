@@ -304,13 +304,30 @@ export function mountApp(root: HTMLElement): void {
       button('Back', 'btn ghost', () => setScreen('home')),
     );
     el.levels.append(head);
+    const unlockedLevel = Math.max(1, Math.min(persist.unlocked, LEVEL_COUNT));
+    const completedCount = unlockedLevel - 1;
+    const progress = document.createElement('p');
+    progress.id = 'level-progress';
+    progress.className = 'level-progress';
+    progress.setAttribute('role', 'status');
+    const clearedSummary = completedCount === 0
+      ? 'No earlier levels cleared'
+      : `${completedCount} earlier ${completedCount === 1 ? 'level' : 'levels'} cleared`;
+    progress.textContent = `Level ${unlockedLevel} unlocked · ${clearedSummary}`;
+    el.levels.append(progress);
     const grid = div('level-grid');
     for (let i = 1; i <= LEVEL_COUNT; i++) {
-      const locked = i > persist.unlocked;
+      const locked = i > unlockedLevel;
+      const completed = i < unlockedLevel;
       const btn = document.createElement('button');
-      btn.className = 'level-btn' + (locked ? ' locked' : '') + (i === persist.unlocked ? ' current' : '');
+      btn.className = 'level-btn' + (locked ? ' locked' : '') + (completed ? ' completed' : '') + (i === unlockedLevel ? ' current' : '');
       btn.textContent = locked ? '🔒' : String(i);
-      btn.setAttribute('aria-label', locked ? `Level ${i}, locked` : `Level ${i}`);
+      btn.setAttribute(
+        'aria-label',
+        locked ? `Level ${i}, locked` : `Level ${i}`,
+      );
+      if (completed) btn.setAttribute('aria-description', 'Completed');
+      else if (i === unlockedLevel) btn.setAttribute('aria-description', 'Current unlocked level');
       btn.disabled = locked;
       if (!locked) {
         btn.addEventListener('click', () => startLevel(i));

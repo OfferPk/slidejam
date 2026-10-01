@@ -141,6 +141,13 @@ h2 { font-size: 1.2rem; color: var(--cream); }
   justify-content: space-between;
   margin-bottom: 10px;
 }
+.level-progress {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.3;
+  margin: -4px 0 10px;
+  text-align: center;
+}
 .level-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -166,6 +173,16 @@ h2 { font-size: 1.2rem; color: var(--cream); }
 .level-btn.current {
   border-color: var(--gold);
   box-shadow: 0 0 0 2px rgba(245, 215, 142, 0.35);
+}
+.level-btn.completed {
+  background: #3c5a4b;
+  border-color: #6fa487;
+}
+.level-btn.completed::after {
+  content: "✓";
+  color: #a6e8bf;
+  font-size: 0.7rem;
+  margin-left: 4px;
 }
 
 .play-bar {
