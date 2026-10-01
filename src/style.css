@@ -327,3 +327,19 @@ h2 { font-size: 1.2rem; color: var(--cream); }
   justify-content: center;
   margin-top: 8px;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+
+  .btn:active {
+    transform: none;
+  }
+
+  .toast,
+  .toast.show {
+    transition: none;
+    transform: translateX(-50%);
+  }
+}

@@ -43,7 +43,7 @@ Serve `dist/` under `/slidejam/`. The app can work offline after its service wor
 2. Axis-locked collision engine and bounded breadth-first solver for traffic hints and level-solvability tests.
 3. Solver-verified traffic levels; unconverted jar-source boards are not selectable or reachable from the game UI.
 4. Pointer/touch dragging, keyboard movement and selection, undo, hint, restart, and level selection.
-5. Screen-reader descriptions and polite move feedback; keyboard focus and modal behavior remain supported.
+5. Screen-reader descriptions and polite move feedback; keyboard focus, modal behavior, and reduced-motion preferences are supported.
 6. Local progress and settings; ad and purchase integrations remain stubs.
 7. PWA build, with no external or licensed vehicle artwork.
 
