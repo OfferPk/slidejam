@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { UndoHistory, takeUndoSnapshot } from '../src/game/history';
+import { UndoHistory, takeRedoSnapshot, takeUndoSnapshot } from '../src/game/history';
 import { isWon, loadBoard, slideBlock } from '../src/game/engine';
 import type { LevelDef } from '../src/game/types';
 
@@ -101,5 +101,38 @@ describe('undo history', () => {
       'other-jar',
     ]);
     expect(isWon(previous!.board)).toBe(false);
+  });
+});
+
+describe('redo history', () => {
+  it('restores an undone move and makes it undoable again', () => {
+    const history = new UndoHistory();
+    const board = loadBoard(clearingJarLevel);
+    history.push(board, 'other-jar');
+    expect(slideBlock(board, 'other-jar', 'R').moved).toBeGreaterThan(0);
+
+    const undone = takeUndoSnapshot(history, board, 'other-jar');
+    expect(undone?.board.blocks.find((block) => block.id === 'other-jar')?.x).toBe(1);
+    expect(undone?.selectedId).toBe('other-jar');
+    expect(history.canUndo).toBe(false);
+    expect(history.canRedo).toBe(true);
+
+    const redone = takeRedoSnapshot(history, undone!.board, undone!.selectedId);
+    expect(redone?.board.blocks.find((block) => block.id === 'other-jar')?.x).toBe(3);
+    expect(redone?.selectedId).toBe('other-jar');
+    expect(history.canUndo).toBe(true);
+    expect(history.canRedo).toBe(false);
+  });
+
+  it('discards the redo path when a new move is recorded', () => {
+    const history = new UndoHistory();
+    const board = loadBoard(clearingJarLevel);
+    history.push(board, 'other-jar');
+    slideBlock(board, 'other-jar', 'R');
+    const undone = takeUndoSnapshot(history, board, 'other-jar');
+
+    expect(history.canRedo).toBe(true);
+    history.push(undone!.board, 'other-jar');
+    expect(history.canRedo).toBe(false);
   });
 });

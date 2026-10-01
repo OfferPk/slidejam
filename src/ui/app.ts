@@ -4,13 +4,14 @@
  */
 import {
   axisAllows,
+  cloneBoard,
   hintMove,
   isWon,
   loadBoard,
   slideBlock,
 } from '../game/engine';
 import { getTrafficExitStatus } from '../game/traffic-feedback';
-import { UndoHistory, takeUndoSnapshot } from '../game/history';
+import { UndoHistory, takeRedoSnapshot, takeUndoSnapshot } from '../game/history';
 import { getBoardKeyboardAction } from './keyboard';
 import { getPointerSlideAction } from './pointer';
 import {
@@ -71,6 +72,7 @@ export function mountApp(root: HTMLElement): void {
   let moveCountDisplay: HTMLParagraphElement | null = null;
   let exitStatusDisplay: HTMLParagraphElement | null = null;
   let undoButton: HTMLButtonElement | null = null;
+  let redoButton: HTMLButtonElement | null = null;
   let selectedId: string | null = null;
   let hintId: string | null = null;
   let freeHintsLeft = 1;
@@ -390,8 +392,8 @@ export function mountApp(root: HTMLElement): void {
     const help = div('play-help');
     help.id = 'board-help';
     help.textContent = board?.mode === 'traffic'
-      ? 'Move vehicles only along their orientation: horizontal vehicles slide left or right; vertical vehicles slide up or down. Clear the red target car’s lane and drive it through the EXIT on the right. Tap or drag a vehicle, or focus the board and press Enter to cycle vehicles, then use the arrow keys. Ctrl/⌘+Z undoes a move.'
-      : 'Tap or click a jar, then swipe or drag along its arrow. The board receives focus when a level opens. Press Enter to cycle jars, then use the arrow keys; Ctrl/⌘+Z undoes a move.';
+      ? 'Move vehicles only along their orientation: horizontal vehicles slide left or right; vertical vehicles slide up or down. Clear the red target car’s lane and drive it through the EXIT on the right. Tap or drag a vehicle, or focus the board and press Enter to cycle vehicles, then use the arrow keys. Ctrl/⌘+Z undoes; Ctrl/⌘+Y or Ctrl/⌘+Shift+Z redoes a move.'
+      : 'Tap or click a jar, then swipe or drag along its arrow. The board receives focus when a level opens. Press Enter to cycle jars, then use the arrow keys; Ctrl/⌘+Z undoes; Ctrl/⌘+Y or Ctrl/⌘+Shift+Z redoes a move.';
     const vehicleDescriptions = document.createElement('ul');
     vehicleDescriptions.id = 'vehicle-descriptions';
     vehicleDescriptions.className = 'visually-hidden';
@@ -422,22 +424,24 @@ export function mountApp(root: HTMLElement): void {
 
     const tools = div('play-tools');
     undoButton = button('Undo', 'btn secondary', () => doUndo());
+    redoButton = button('Redo', 'btn secondary', () => void doRedo());
     tools.append(
       undoButton,
+      redoButton,
       button('Hint', 'btn gold', () => void doHint()),
       button('Restart', 'btn secondary', () => void doRestart()),
     );
     el.play.append(tools);
-    syncUndoButton();
+    syncHistoryButtons();
 
     wireCanvas(canvas);
     resizeCanvas(canvas);
   }
 
-  function syncUndoButton(): void {
-    if (undoButton) {
-      undoButton.disabled = !undoHistory.canUndo || !board || isWon(board);
-    }
+  function syncHistoryButtons(): void {
+    const active = board !== null && !isWon(board);
+    if (undoButton) undoButton.disabled = !undoHistory.canUndo || !active;
+    if (redoButton) redoButton.disabled = !undoHistory.canRedo || !active;
   }
 
   function syncMoveCount(): void {
@@ -596,6 +600,10 @@ export function mountApp(root: HTMLElement): void {
       doUndo();
       return;
     }
+    if (action.type === 'redo') {
+      void doRedo();
+      return;
+    }
 
     if (!selectedId) {
       showToast(board.mode === 'traffic' ? 'Press Enter to select a vehicle first' : 'Press Enter to select a jar first');
@@ -624,16 +632,16 @@ export function mountApp(root: HTMLElement): void {
   async function moveBlock(id: string, dir: Dir, announce = false): Promise<void> {
     if (!board || sliding) return;
     sliding = true;
-    undoHistory.push(board, selectedId);
+    const previousBoard = cloneBoard(board);
+    const previousSelectedId = selectedId;
     const result = slideBlock(board, id, dir);
     if (result.moved === 0) {
-      undoHistory.pop();
-      syncUndoButton();
       selectedId = id;
       showToast(`No space remains to the ${DIRECTION_NAMES[dir]}`);
       sliding = false;
       return;
     }
+    undoHistory.push(previousBoard, previousSelectedId);
     if (!persist.mute) {
       /* sfx stub */
     }
@@ -643,7 +651,7 @@ export function mountApp(root: HTMLElement): void {
     syncTrafficExitStatus();
     selectedId = result.cleared ? null : id;
     syncVehicleDescriptions();
-    syncUndoButton();
+    syncHistoryButtons();
     if (announce) {
       showToast(result.cleared
         ? board.mode === 'traffic' ? 'Target vehicle escaped' : 'Jar cleared'
@@ -692,7 +700,7 @@ export function mountApp(root: HTMLElement): void {
   }
 
   function doUndo(): void {
-    const previous = takeUndoSnapshot(undoHistory, board);
+    const previous = takeUndoSnapshot(undoHistory, board, selectedId);
     if (!previous) {
       showToast('Nothing to undo');
       return;
@@ -704,8 +712,26 @@ export function mountApp(root: HTMLElement): void {
     syncTrafficExitStatus();
     hintId = null;
     syncVehicleDescriptions();
-    syncUndoButton();
+    syncHistoryButtons();
     showToast('Undo');
+  }
+
+  async function doRedo(): Promise<void> {
+    const next = takeRedoSnapshot(undoHistory, board, selectedId);
+    if (!next) {
+      showToast('Nothing to redo');
+      return;
+    }
+    board = next.board;
+    selectedId = next.selectedId;
+    moveCount++;
+    syncMoveCount();
+    syncTrafficExitStatus();
+    hintId = null;
+    syncVehicleDescriptions();
+    syncHistoryButtons();
+    showToast('Redo');
+    if (board && isWon(board)) await onWin();
   }
 
   async function doHint(): Promise<void> {

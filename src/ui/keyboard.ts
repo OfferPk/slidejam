@@ -3,7 +3,8 @@ import type { Dir } from '../game/types';
 export type BoardKeyboardAction =
   | { type: 'slide'; dir: Dir }
   | { type: 'select-next' }
-  | { type: 'undo' };
+  | { type: 'undo' }
+  | { type: 'redo' };
 
 type KeyModifiers = Pick<KeyboardEvent, 'ctrlKey' | 'metaKey' | 'shiftKey'>;
 
@@ -23,12 +24,14 @@ export function getBoardKeyboardAction(
   if (key === 'Enter' && !modifiers.ctrlKey && !modifiers.metaKey) {
     return { type: 'select-next' };
   }
-  if (
-    (modifiers.ctrlKey || modifiers.metaKey) &&
-    !modifiers.shiftKey &&
-    key.toLowerCase() === 'z'
-  ) {
-    return { type: 'undo' };
+
+  const command = modifiers.ctrlKey || modifiers.metaKey;
+  const normalizedKey = key.toLowerCase();
+  if (command && normalizedKey === 'z') {
+    return modifiers.shiftKey ? { type: 'redo' } : { type: 'undo' };
+  }
+  if (command && normalizedKey === 'y' && !modifiers.shiftKey) {
+    return { type: 'redo' };
   }
   return null;
 }

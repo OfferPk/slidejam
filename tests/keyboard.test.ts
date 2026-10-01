@@ -11,16 +11,20 @@ describe('board keyboard controls', () => {
     expect(getBoardKeyboardAction('ArrowDown', plain)).toEqual({ type: 'slide', dir: 'D' });
   });
 
-  it('uses Enter to cycle selectable pieces and Ctrl/Command+Z to undo', () => {
+  it('uses Enter to cycle pieces and supports undo and redo shortcuts', () => {
     expect(getBoardKeyboardAction('Enter', plain)).toEqual({ type: 'select-next' });
     expect(getBoardKeyboardAction('z', { ...plain, ctrlKey: true })).toEqual({ type: 'undo' });
     expect(getBoardKeyboardAction('Z', { ...plain, metaKey: true })).toEqual({ type: 'undo' });
+    expect(getBoardKeyboardAction('z', { ...plain, ctrlKey: true, shiftKey: true })).toEqual({ type: 'redo' });
+    expect(getBoardKeyboardAction('Z', { ...plain, metaKey: true, shiftKey: true })).toEqual({ type: 'redo' });
+    expect(getBoardKeyboardAction('y', { ...plain, ctrlKey: true })).toEqual({ type: 'redo' });
+    expect(getBoardKeyboardAction('Y', { ...plain, metaKey: true })).toEqual({ type: 'redo' });
   });
 
-  it('ignores unrelated keys and leaves redo chords untouched', () => {
+  it('ignores unrelated keys and unsupported shortcut variants', () => {
     expect(getBoardKeyboardAction('x', plain)).toBeNull();
     expect(getBoardKeyboardAction('Tab', plain)).toBeNull();
-    expect(getBoardKeyboardAction('z', { ...plain, ctrlKey: true, shiftKey: true })).toBeNull();
     expect(getBoardKeyboardAction('Enter', { ...plain, ctrlKey: true })).toBeNull();
+    expect(getBoardKeyboardAction('y', { ...plain, ctrlKey: true, shiftKey: true })).toBeNull();
   });
 });
