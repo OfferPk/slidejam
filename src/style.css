@@ -186,6 +186,12 @@ h2 { font-size: 1.2rem; color: var(--cream); }
   margin-top: 8px;
 }
 .play-tools .btn { padding: 10px 12px; font-size: 0.9rem; flex: 1; min-width: 72px; }
+.move-count {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-align: center;
+}
 
 .canvas-wrap {
   flex: 1;
