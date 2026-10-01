@@ -9,6 +9,7 @@ import {
   loadBoard,
   slideBlock,
 } from '../game/engine';
+import { getTrafficExitStatus } from '../game/traffic-feedback';
 import { UndoHistory, takeUndoSnapshot } from '../game/history';
 import { getBoardKeyboardAction } from './keyboard';
 import { getPointerSlideAction } from './pointer';
@@ -68,6 +69,7 @@ export function mountApp(root: HTMLElement): void {
   const undoHistory = new UndoHistory();
   let moveCount = 0;
   let moveCountDisplay: HTMLParagraphElement | null = null;
+  let exitStatusDisplay: HTMLParagraphElement | null = null;
   let undoButton: HTMLButtonElement | null = null;
   let selectedId: string | null = null;
   let hintId: string | null = null;
@@ -377,7 +379,12 @@ export function mountApp(root: HTMLElement): void {
         ? `Level ${levelId} traffic puzzle board with an exit on the right`
         : `Level ${levelId} puzzle board`,
     );
-    canvas.setAttribute('aria-describedby', 'board-help vehicle-descriptions');
+    canvas.setAttribute(
+      'aria-describedby',
+      board?.mode === 'traffic'
+        ? 'board-help exit-status vehicle-descriptions'
+        : 'board-help vehicle-descriptions',
+    );
     canvas.tabIndex = 0;
     wrap.append(canvas);
     const help = div('play-help');
@@ -391,7 +398,18 @@ export function mountApp(root: HTMLElement): void {
     vehicleDescriptions.setAttribute('aria-live', 'polite');
     vehicleDescriptions.setAttribute('aria-atomic', 'false');
     vehicleDescriptions.setAttribute('aria-relevant', 'additions removals text');
-    el.play.append(wrap, help, vehicleDescriptions);
+    exitStatusDisplay = null;
+    if (board?.mode === 'traffic') {
+      exitStatusDisplay = document.createElement('p');
+      exitStatusDisplay.id = 'exit-status';
+      exitStatusDisplay.className = 'exit-status';
+      exitStatusDisplay.setAttribute('aria-live', 'polite');
+      exitStatusDisplay.setAttribute('aria-atomic', 'true');
+      el.play.append(wrap, help, exitStatusDisplay, vehicleDescriptions);
+    } else {
+      el.play.append(wrap, help, vehicleDescriptions);
+    }
+    syncTrafficExitStatus();
     syncVehicleDescriptions();
 
     moveCountDisplay = document.createElement('p');
@@ -425,6 +443,12 @@ export function mountApp(root: HTMLElement): void {
   function syncMoveCount(): void {
     if (moveCountDisplay) {
       moveCountDisplay.textContent = `Moves this attempt: ${moveCount}`;
+    }
+  }
+
+  function syncTrafficExitStatus(): void {
+    if (exitStatusDisplay && board) {
+      exitStatusDisplay.textContent = getTrafficExitStatus(board) ?? '';
     }
   }
 
@@ -616,6 +640,7 @@ export function mountApp(root: HTMLElement): void {
     hintId = null;
     moveCount++;
     syncMoveCount();
+    syncTrafficExitStatus();
     selectedId = result.cleared ? null : id;
     syncVehicleDescriptions();
     syncUndoButton();
@@ -676,6 +701,7 @@ export function mountApp(root: HTMLElement): void {
     selectedId = previous.selectedId;
     moveCount = Math.max(0, moveCount - 1);
     syncMoveCount();
+    syncTrafficExitStatus();
     hintId = null;
     syncVehicleDescriptions();
     syncUndoButton();
