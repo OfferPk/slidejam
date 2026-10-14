@@ -59,3 +59,11 @@ Unit tests validate every registered board's geometry, visible exit lane, solver
 ## Roman Urdu guide
 
 See [GUIDE-roman-urdu.md](./GUIDE-roman-urdu.md) for install, run, controls, and the coverage boundary.
+
+## v0.2.0 (Android + meta layer)
+
+- Android: Capacitor 8 project in `android/` (`com.offerpk.slidejam`, `webDir: dist`); `.github/workflows/android.yml` runs tests, `npm run build`, `cap sync` and builds a signed AAB/APK on every `v*` tag. Vite `base` is now `./`.
+- AdMob (`public/js/ads.js`, Google **test** IDs in `public/js/ads-config.js`): rewarded ads only from a tap (extra hints, 24h skin trials). Interstitials only from the win screen's buttons; never on launch, restart, exit or in the first session (`public/js/adgate.js`). The stub ad dialogs and the fake "Remove ads" button are gone.
+- Meta layer (`public/js/metakit.js` + `meta-config.js`): How to play card, 7-day daily reward + seeded Daily challenge, Skin Shop (road themes + car paint drawn on the canvas, tap to preview, 24h rewarded trial), achievements + Stats (3 stars = BFS-shortest solution), level-1 coach, accessibility settings. Coins are cosmetic only.
+- Store: `LAUNCH_CHECKLIST.md`, `store/LISTING-v0.2.md`, `store/screenshots/01–08.png`, `store/feature-graphic-1024x500.png`, Play Store guard workflow (`play-store.yml`).
+- Tests: `npm test` (vitest + meta/ads unit + store guard), `npm run test:e2e` (Playwright, 25 specs), and `npm run build && node tests/meta.browser.cjs http://localhost:PORT/`.

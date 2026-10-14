@@ -59,7 +59,6 @@ test('normal progression unlocks and live-plays Level 15, then unlocks Level 16'
   });
   await expect(level14).toBeFocused();
   await solveWithKeyboard(solveLevel14);
-  await expect(page.getByRole('dialog', { name: 'Ad stub — Interstitial' })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('heading', { name: 'Target vehicle escaped!' })).toBeVisible();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('slidejam_v1') ?? '{}').unlocked))
@@ -70,7 +69,7 @@ test('normal progression unlocks and live-plays Level 15, then unlocks Level 16'
     name: 'Level 15 traffic puzzle board with an exit on the right',
   });
   const target15 = page.locator('#vehicle-descriptions li[data-vehicle-id="target-car"]');
-  const status = page.getByRole('status');
+  const status = page.locator('.toast[role="status"]');
   await expect(level15).toBeFocused();
   await expect(level15).toHaveAccessibleDescription(/EXIT on the right/);
   await expect(target15).toContainText('row 3, columns 1 to 2');
@@ -119,7 +118,6 @@ test('normal progression unlocks and live-plays Level 15, then unlocks Level 16'
     ['target-car', 'ArrowRight'],
   ];
   await solveWithKeyboard(solveLevel15, 1);
-  await expect(page.getByRole('dialog', { name: 'Ad stub — Interstitial' })).toBeVisible();
   await expect(target15).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(page.getByRole('heading', { name: 'Target vehicle escaped!' })).toBeVisible();

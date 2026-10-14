@@ -23,7 +23,7 @@ test('exit-path status updates after a legal move and undo', async ({ page }) =>
   );
 
   await board.press('Control+z');
-  await expect(page.getByRole('status')).toHaveText('Undo');
+  await expect(page.locator('.toast[role="status"]')).toHaveText('Undo');
   await expect(exitStatus).toHaveText(
     'Exit path blocked by 2 vehicles: blue bus, yellow car.',
   );

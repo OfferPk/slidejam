@@ -9,7 +9,7 @@ test('respects the system reduced-motion preference for button and toast feedbac
   const buttonDuration = await muteButton.evaluate(
     (element) => getComputedStyle(element).transitionDuration,
   );
-  expect(buttonDuration).toBe('0s');
+  expect(parseFloat(buttonDuration)).toBeLessThan(0.01); // 0s, or the meta layer's 0.00001s reduce-motion rule
 
   const hiddenToastStyle = await toast.evaluate((element) => {
     const style = getComputedStyle(element);
@@ -18,7 +18,7 @@ test('respects the system reduced-motion preference for button and toast feedbac
       translateY: new DOMMatrixReadOnly(style.transform).m42,
     };
   });
-  expect(hiddenToastStyle.duration).toBe('0s');
+  expect(parseFloat(hiddenToastStyle.duration)).toBeLessThan(0.01);
   expect(hiddenToastStyle.translateY).toBe(0);
 
   await muteButton.hover();
@@ -35,6 +35,6 @@ test('respects the system reduced-motion preference for button and toast feedbac
       translateY: new DOMMatrixReadOnly(style.transform).m42,
     };
   });
-  expect(shownToastStyle.duration).toBe('0s');
+  expect(parseFloat(shownToastStyle.duration)).toBeLessThan(0.01);
   expect(shownToastStyle.translateY).toBe(hiddenToastStyle.translateY);
 });

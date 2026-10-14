@@ -9,6 +9,7 @@ import {
   isWon,
   loadBoard,
   slideBlock,
+  solveBoard,
 } from '../game/engine';
 import { getTrafficExitStatus } from '../game/traffic-feedback';
 import { UndoHistory, takeRedoSnapshot, takeUndoSnapshot } from '../game/history';
@@ -29,10 +30,6 @@ import {
   type BoardLayout,
 } from '../render/board';
 import {
-  isAdsRemoved,
-  purchaseRemoveAds,
-  setInterstitialPresenter,
-  setRewardedPresenter,
   showInterstitial,
   showRewarded,
 } from '../ads/stubs';
@@ -78,6 +75,9 @@ export function mountApp(root: HTMLElement): void {
   let freeHintsLeft = 1;
   let layout: BoardLayout | null = null;
   let raf = 0;
+  let winAdPending = false;
+  let usedHelp = false;
+  let metaBar: HTMLElement | null = null;
 
   // Pointer drag state
   let dragId: string | null = null;
@@ -103,22 +103,6 @@ export function mountApp(root: HTMLElement): void {
   el.toast.setAttribute('role', 'status');
   el.toast.setAttribute('aria-live', 'polite');
   el.toast.setAttribute('aria-atomic', 'true');
-
-  setInterstitialPresenter(async (reason) => {
-    await showModalStub(
-      'Ad stub — Interstitial',
-      `Reason: ${reason}\n(No real ad SDK in MVP)`,
-      'Continue',
-    );
-  });
-  setRewardedPresenter(async (reason) => {
-    return showModalStubConfirm(
-      'Ad stub — Rewarded',
-      `Watch stub for: ${reason}\nGrant reward?`,
-      'Earn reward',
-      'Cancel',
-    );
-  });
 
   function showToast(msg: string): void {
     el.toast.textContent = msg;
@@ -163,30 +147,6 @@ export function mountApp(root: HTMLElement): void {
       }
     });
     initialFocus.focus();
-  }
-
-  function showModalStub(title: string, body: string, okLabel: string): Promise<void> {
-    return new Promise((resolve) => {
-      const previousFocus = document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
-      el.overlay.className = 'overlay open';
-      el.overlay.innerHTML = '';
-      const modal = div('modal');
-      modal.setAttribute('role', 'dialog');
-      modal.setAttribute('aria-modal', 'true');
-      modal.setAttribute('aria-labelledby', 'ad-stub-title');
-      modal.setAttribute('aria-describedby', 'ad-stub-description');
-      modal.innerHTML = `<div class="ad-stub"><strong id="ad-stub-title">${esc(title)}</strong><span id="ad-stub-description">${esc(body).replace(/\n/g, '<br/>')}</span></div>`;
-      const close = () => {
-        dismissModal(previousFocus);
-        resolve();
-      };
-      const continueButton = button(okLabel, 'btn block', close);
-      modal.append(continueButton);
-      el.overlay.append(modal);
-      prepareModal(modal, continueButton, close);
-    });
   }
 
   function showModalStubConfirm(
@@ -270,28 +230,17 @@ export function mountApp(root: HTMLElement): void {
       button('Levels', 'btn secondary block', () => setScreen('levels')),
     );
     el.home.append(actions);
+    if (metaBar) el.home.append(metaBar);
 
     const settings = div('settings-row');
     const muteButton = button(persist.mute ? 'Unmute' : 'Mute', 'btn ghost', () => {
         persist = savePersist({ mute: !persist.mute });
         muteButton.textContent = persist.mute ? 'Unmute' : 'Mute';
-        showToast(persist.mute ? 'Muted' : 'Sound on (stub)');
+        showToast(persist.mute ? 'Muted' : 'Sound on');
       });
-    const removeAdsButton = button(
-        isAdsRemoved() ? 'Ads removed' : 'Remove ads',
-        'btn ghost',
-        async () => {
-          if (isAdsRemoved()) {
-            showToast('Ads already removed');
-            return;
-          }
-          await purchaseRemoveAds();
-          persist = loadPersist();
-          removeAdsButton.textContent = isAdsRemoved() ? 'Ads removed' : 'Remove ads';
-          showToast('Remove-ads stub applied');
-        },
-      );
-    settings.append(muteButton, removeAdsButton);
+    const settingsButton = button('Settings', 'btn ghost', () => openSettings());
+    settingsButton.id = 'btn-settings';
+    settings.append(muteButton, settingsButton);
     el.home.append(settings);
     const note = div('home-note');
     note.textContent = `${LEVEL_COUNT} verified traffic levels · legacy levels remain hidden`;
@@ -352,7 +301,9 @@ export function mountApp(root: HTMLElement): void {
     hintId = null;
     freeHintsLeft = 1;
     dragId = null;
+    usedHelp = false;
     setScreen('play');
+    if (id === 1) (window as unknown as SjGlobals).Meta?.runCoach?.(false);
   }
 
   function renderPlayShell(): void {
@@ -647,6 +598,7 @@ export function mountApp(root: HTMLElement): void {
     }
     hintId = null;
     moveCount++;
+    (window as unknown as SjGlobals).Meta?.move?.();
     syncMoveCount();
     syncTrafficExitStatus();
     selectedId = result.cleared ? null : id;
@@ -705,6 +657,7 @@ export function mountApp(root: HTMLElement): void {
       showToast('Nothing to undo');
       return;
     }
+    usedHelp = true;
     board = previous.board;
     selectedId = previous.selectedId;
     moveCount = Math.max(0, moveCount - 1);
@@ -736,6 +689,7 @@ export function mountApp(root: HTMLElement): void {
 
   async function doHint(): Promise<void> {
     if (!board) return;
+    usedHelp = true;
     if (freeHintsLeft <= 0) {
       const earned = await showRewarded('hint');
       if (!earned) {
@@ -765,7 +719,6 @@ export function mountApp(root: HTMLElement): void {
       );
       if (!confirmed) return;
     }
-    await showInterstitial('restart');
     startLevel(levelId);
   }
 
@@ -776,8 +729,25 @@ export function mountApp(root: HTMLElement): void {
     } else {
       persist = unlockLevel(LEVEL_COUNT);
     }
-    await showInterstitial('win');
+    winAdPending = true;
     setScreen('win');
+    const W = window as unknown as SjGlobals;
+    if (W.Meta?.win) {
+      try {
+        const par = parMoves();
+        const stars = par && moveCount <= par ? 3 : par && moveCount <= Math.ceil(par * 1.5) ? 2 : 1;
+        W.Meta.win({ level: levelId, moves: moveCount, stars, clean: !usedHelp, par });
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+  }
+
+  /** Interstitial only after a completed level, when the player taps on from the win screen. */
+  function afterLevelAd(): void {
+    if (!winAdPending) return;
+    winAdPending = false;
+    void showInterstitial('after-level');
   }
 
   function renderWin(): void {
@@ -799,12 +769,21 @@ export function mountApp(root: HTMLElement): void {
     const actions = div('win-actions');
     if (levelId < LEVEL_COUNT) {
       actions.append(
-        button('Next level', 'btn block', () => startLevel(levelId + 1)),
+        button('Next level', 'btn block', () => {
+          afterLevelAd();
+          startLevel(levelId + 1);
+        }),
       );
     }
     actions.append(
-      button('Replay', 'btn secondary block', () => startLevel(levelId)),
-      button('Levels', 'btn ghost block', () => setScreen('levels')),
+      button('Replay', 'btn secondary block', () => {
+        afterLevelAd();
+        startLevel(levelId);
+      }),
+      button('Levels', 'btn ghost block', () => {
+        afterLevelAd();
+        setScreen('levels');
+      }),
     );
     el.win.append(actions);
   }
@@ -816,8 +795,63 @@ export function mountApp(root: HTMLElement): void {
     }
   });
 
+  // v0.2 settings panel (static, so the meta layer's accessibility rows survive screen re-renders)
+  const settingsPanel = div('sj-settings');
+  settingsPanel.id = 'sj-settings';
+  settingsPanel.hidden = true;
+  settingsPanel.setAttribute('role', 'dialog');
+  settingsPanel.setAttribute('aria-modal', 'true');
+  settingsPanel.setAttribute('aria-label', 'Settings');
+  settingsPanel.innerHTML = '<div class="settings-panel"><h2>Settings</h2><div class="settings-end"><button type="button" class="btn block" id="btn-settings-done">Done</button></div></div>';
+  root.append(settingsPanel);
+  function openSettings(): void {
+    settingsPanel.hidden = false;
+    (settingsPanel.querySelector('input, button') as HTMLElement | null)?.focus();
+  }
+  function closeSettings(): void {
+    settingsPanel.hidden = true;
+  }
+  settingsPanel.querySelector('#btn-settings-done')?.addEventListener('click', closeSettings);
+
+  const parCache = new Map<number, number>();
+  /** Shortest solution length (BFS) for star ratings; cached per level. */
+  function parMoves(): number {
+    if (!parCache.has(levelId)) {
+      const def = getLevel(levelId);
+      const sol = def ? solveBoard(loadBoard(def)) : null;
+      parCache.set(levelId, sol ? sol.length : 0);
+    }
+    return parCache.get(levelId) ?? 0;
+  }
+
   setScreen('home', false);
+  const W = window as unknown as SjGlobals;
+  W.__sj = {
+    startLevel,
+    level: () => levelId,
+    unlocked: () => persist.unlocked,
+    levelCount: LEVEL_COUNT,
+    isFirstLevel: () => screen === 'play' && levelId === 1,
+    closeSettings,
+    showScreen: (s: Screen) => setScreen(s),
+    redraw: () => {
+      const canvas = el.play.querySelector('canvas');
+      if (canvas) resizeCanvas(canvas);
+    },
+    winForTest: () => {
+      moveCount = Math.max(moveCount, 1);
+      void onWin();
+    },
+  };
+  W.SJ_META_BOOT?.();
+  metaBar = document.getElementById('meta-bar');
 }
+
+type SjGlobals = {
+  Meta?: { win?: (d: Record<string, unknown>) => number; runCoach?: (force: boolean) => void; move?: () => void };
+  SJ_META_BOOT?: () => void;
+  __sj?: unknown;
+};
 
 function div(className: string, id?: string): HTMLDivElement {
   const d = document.createElement('div');

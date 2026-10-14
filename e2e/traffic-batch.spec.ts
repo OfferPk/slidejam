@@ -36,7 +36,7 @@ test('keyboard solves Levels 13–14, confirms the visible exit, and unlocks Lev
     }
   };
 
-  const status = page.getByRole('status');
+  const status = page.locator('.toast[role="status"]');
   const level13Board = page.getByRole('group', {
     name: 'Level 13 traffic puzzle board with an exit on the right',
   });
@@ -73,10 +73,7 @@ test('keyboard solves Levels 13–14, confirms the visible exit, and unlocks Lev
     ['junction-bus', 'ArrowDown'],
     ['target-car', 'ArrowRight'],
   ], 0);
-
-  await expect(page.getByRole('dialog', { name: 'Ad stub — Interstitial' })).toBeVisible();
   await expect(level13Target).toHaveCount(0);
-  await page.keyboard.press('Escape');
   await expect(page.getByRole('heading', { name: 'Target vehicle escaped!' })).toBeVisible();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('slidejam_v1') ?? '{}').unlocked))
     .toBe(14);
@@ -117,10 +114,7 @@ test('keyboard solves Levels 13–14, confirms the visible exit, and unlocks Lev
     ['junction-bus', 'ArrowDown'],
     ['target-car', 'ArrowRight'],
   ], 0);
-
-  await expect(page.getByRole('dialog', { name: 'Ad stub — Interstitial' })).toBeVisible();
   await expect(level14Target).toHaveCount(0);
-  await page.keyboard.press('Escape');
   await expect(page.getByRole('heading', { name: 'Target vehicle escaped!' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Next level', exact: true })).toBeVisible();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('slidejam_v1') ?? '{}').unlocked))

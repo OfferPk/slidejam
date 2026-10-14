@@ -10,20 +10,18 @@ test('restart protects moved levels and cancellation keeps the current board', a
   const target = page.locator('#vehicle-descriptions li[data-vehicle-id="target-car"]');
   const undo = page.getByRole('button', { name: 'Undo', exact: true });
   const restart = page.getByRole('button', { name: 'Restart', exact: true });
-  const interstitial = page.getByRole('dialog', { name: 'Ad stub — Interstitial' });
 
   await expect(board).toBeFocused();
+  // Restart never shows an ad (v0.2: interstitials only after a completed level).
   await restart.click();
-  await expect(interstitial).toBeVisible();
-  await expect(interstitial).toContainText('Reason: restart');
-  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(board).toBeFocused();
   await expect(undo).toBeDisabled();
   await expect(target).toContainText('columns 1 to 2');
 
   await page.keyboard.press('Enter');
   await page.keyboard.press('ArrowRight');
-  await expect(page.getByRole('status')).toHaveText('Slid right');
+  await expect(page.locator('.toast[role="status"]')).toHaveText('Slid right');
   await expect(target).toContainText('columns 2 to 3');
   await expect(undo).toBeEnabled();
 
@@ -42,8 +40,6 @@ test('restart protects moved levels and cancellation keeps the current board', a
   await restart.click();
   const secondConfirmation = page.getByRole('dialog', { name: 'Restart this level?' });
   await secondConfirmation.getByRole('button', { name: 'Restart', exact: true }).click();
-  await expect(interstitial).toBeVisible();
-  await page.getByRole('button', { name: 'Continue', exact: true }).click();
 
   await expect(board).toBeFocused();
   await expect(target).toContainText('columns 1 to 2');

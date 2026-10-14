@@ -17,6 +17,22 @@ export interface RenderOpts {
   dragOffset?: { id: string; dx: number; dy: number } | null;
 }
 
+/** Cosmetic skins (v0.2): the metakit Skin Shop sets body classes road-<id> and paint-<id>. Colours of vehicles never change. */
+export const ROAD_THEMES: Record<string, { rim: string; road: string; lane: string; curb: string }> = {
+  asphalt: { rim: '#151e26', road: '#303a43', lane: 'rgba(235, 240, 238, 0.27)', curb: '#b8c4c5' },
+  night: { rim: '#070b14', road: '#182033', lane: 'rgba(255, 214, 102, 0.35)', curb: '#6f7fa8' },
+  desert: { rim: '#4a3320', road: '#8a6a45', lane: 'rgba(255, 244, 214, 0.4)', curb: '#e3c897' },
+  park: { rim: '#183a22', road: '#3b5a44', lane: 'rgba(230, 255, 230, 0.32)', curb: '#a9d6a0' },
+  harbor: { rim: '#0d2b3a', road: '#2c5266', lane: 'rgba(220, 245, 255, 0.35)', curb: '#9fd3e6' },
+  snow: { rim: '#5f6f7d', road: '#9aa8b4', lane: 'rgba(255, 255, 255, 0.6)', curb: '#eef4f8' },
+  neon: { rim: '#12051f', road: '#24103a', lane: 'rgba(255, 92, 220, 0.5)', curb: '#39e6ff' },
+};
+export function skinOf(prefix: string, fallback: string): string {
+  if (typeof document === 'undefined' || !document.body) return fallback;
+  for (const c of Array.from(document.body.classList)) if (c.startsWith(prefix)) return c.slice(prefix.length);
+  return fallback;
+}
+
 export function computeLayout(
   board: BoardState,
   canvasW: number,
@@ -155,14 +171,15 @@ function drawTrafficBoard(
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
   roundRect(ctx, originX - 7, originY - 7, width + exitWidth + 14, height + 14, 18);
-  ctx.fillStyle = '#151e26';
+  const road = ROAD_THEMES[skinOf('road-', 'asphalt')] ?? ROAD_THEMES.asphalt!;
+  ctx.fillStyle = road.rim;
   ctx.fill();
-  ctx.fillStyle = '#303a43';
+  ctx.fillStyle = road.road;
   roundRect(ctx, originX - 2, originY - 2, width + exitWidth + 4, height + 4, 13);
   ctx.fill();
 
   ctx.save();
-  ctx.strokeStyle = 'rgba(235, 240, 238, 0.27)';
+  ctx.strokeStyle = road.lane;
   ctx.lineWidth = Math.max(1, cell * 0.022);
   ctx.setLineDash([cell * 0.22, cell * 0.18]);
   for (let row = 1; row < board.h; row++) {
@@ -187,7 +204,7 @@ function drawTrafficBoard(
 
   // Curb lines stop at the exit opening, leaving a clear path off the board.
   ctx.save();
-  ctx.strokeStyle = '#b8c4c5';
+  ctx.strokeStyle = road.curb;
   ctx.lineWidth = Math.max(2, cell * 0.045);
   if (board.trafficExit) {
     const gapTop = originY + board.trafficExit.lane * cell + cell * 0.08;
@@ -282,12 +299,21 @@ function drawVehicle(
   ctx.fillStyle = 'rgba(0,0,0,0.32)';
   roundRect(ctx, bodyX + 1, bodyY + 3, bodyW, bodyH, Math.min(cell * 0.22, minor * 0.3));
   ctx.fill();
+  const paint = skinOf('paint-', 'gloss');
+  const radius = Math.min(cell * 0.22, minor * 0.3);
   const gradient = ctx.createLinearGradient(bodyX, bodyY, bodyX, bodyY + bodyH);
-  gradient.addColorStop(0, shade(color, 1.16));
-  gradient.addColorStop(1, shade(color, 0.83));
+  gradient.addColorStop(0, shade(color, paint === 'matte' ? 1 : 1.16));
+  gradient.addColorStop(1, shade(color, paint === 'matte' ? 0.94 : 0.83));
   ctx.fillStyle = gradient;
-  roundRect(ctx, bodyX, bodyY, bodyW, bodyH, Math.min(cell * 0.22, minor * 0.3));
+  if (paint === 'neon') {
+    ctx.save();
+    ctx.shadowColor = color;
+    ctx.shadowBlur = cell * 0.25;
+  }
+  roundRect(ctx, bodyX, bodyY, bodyW, bodyH, radius);
   ctx.fill();
+  if (paint === 'neon') ctx.restore();
+  drawPaint(ctx, paint, vehicle.axis === 'H', bodyX, bodyY, bodyW, bodyH, radius, color);
   ctx.strokeStyle = isTarget ? '#ffe69a' : shade(color, 0.72);
   ctx.lineWidth = isTarget ? Math.max(2, cell * 0.045) : Math.max(1, cell * 0.025);
   roundRect(ctx, bodyX, bodyY, bodyW, bodyH, Math.min(cell * 0.22, minor * 0.3));
@@ -504,4 +530,29 @@ function shade(hex: string, factor: number): string {
   const g = Math.min(255, Math.max(0, Math.round(((number >> 8) & 255) * factor)));
   const b = Math.min(255, Math.max(0, Math.round((number & 255) * factor)));
   return `rgb(${r},${g},${b})`;
+}
+
+function drawPaint(ctx: CanvasRenderingContext2D, paint: string, horiz: boolean, x: number, y: number, w: number, h: number, r: number, color: string): void {
+  if (paint === 'gloss' || paint === 'matte' || paint === 'neon') return;
+  ctx.save();
+  roundRect(ctx, x, y, w, h, r);
+  ctx.clip();
+  if (paint === 'stripe') {
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    if (horiz) { ctx.fillRect(x, y + h * 0.4, w, h * 0.08); ctx.fillRect(x, y + h * 0.52, w, h * 0.08); }
+    else { ctx.fillRect(x + w * 0.4, y, w * 0.08, h); ctx.fillRect(x + w * 0.52, y, w * 0.08, h); }
+  } else if (paint === 'pearl') {
+    const g = ctx.createLinearGradient(x, y, x + w, y + h);
+    g.addColorStop(0, 'rgba(255,255,255,0.45)'); g.addColorStop(0.45, 'rgba(255,255,255,0)'); g.addColorStop(0.7, 'rgba(255,255,255,0.25)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
+  } else if (paint === 'twotone') {
+    ctx.fillStyle = shade(color, 0.62);
+    if (horiz) ctx.fillRect(x, y + h * 0.55, w, h * 0.45); else ctx.fillRect(x + w * 0.55, y, w * 0.45, h);
+  } else if (paint === 'checker') {
+    const sq = Math.max(3, Math.min(w, h) * 0.14);
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    const cx = horiz ? x + w - sq * 3 : x; const cy = horiz ? y : y + h - sq * 3;
+    for (let i = 0; i < (horiz ? 3 : Math.ceil(w / sq)); i++) for (let j = 0; j < (horiz ? Math.ceil(h / sq) : 3); j++) if ((i + j) % 2 === 0) ctx.fillRect(cx + i * sq, cy + j * sq, sq, sq);
+  }
+  ctx.restore();
 }

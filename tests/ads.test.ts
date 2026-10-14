@@ -1,55 +1,30 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { clearAdLog, getAdLog, showInterstitial, showRewarded } from '../src/ads/stubs';
 
-const memStore: Record<string, string> = {};
-vi.stubGlobal('localStorage', {
-  getItem(k: string) {
-    return memStore[k] ?? null;
-  },
-  setItem(k: string, v: string) {
-    memStore[k] = v;
-  },
-  removeItem(k: string) {
-    delete memStore[k];
-  },
-  clear() {
-    for (const k of Object.keys(memStore)) delete memStore[k];
-  },
-});
-
-import {
-  clearAdLog,
-  getAdLog,
-  isAdsRemoved,
-  purchaseRemoveAds,
-  showInterstitial,
-  showRewarded,
-} from '../src/ads/stubs';
-
-describe('ads stubs', () => {
+describe('ad bridge rules', () => {
   beforeEach(() => {
-    localStorage.clear();
     clearAdLog();
+    delete (globalThis as { Ads?: unknown }).Ads;
   });
 
-  it('showInterstitial logs and returns true when ads on', async () => {
-    const ok = await showInterstitial('win');
-    expect(ok).toBe(true);
-    expect(getAdLog()).toContain('interstitial:show:win');
-    expect(getAdLog()).toContain('interstitial:dismissed:win');
+  it('refuses interstitials for anything but a completed level', async () => {
+    for (const r of ['launch', 'restart', 'exit', 'win']) expect(await showInterstitial(r)).toBe(false);
+    expect(getAdLog().every((l) => l.startsWith('interstitial:refused'))).toBe(true);
   });
 
-  it('showRewarded grants', async () => {
-    const ok = await showRewarded('hint');
-    expect(ok).toBe(true);
-    expect(getAdLog()).toContain('rewarded:earned:hint');
+  it('after-level goes through the gated native bridge', async () => {
+    let calls = 0;
+    (globalThis as { Ads?: unknown }).Ads = { showInterstitial: async () => { calls++; return false; } };
+    expect(await showInterstitial('after-level')).toBe(false);
+    expect(calls).toBe(1);
+    expect(getAdLog()).toContain('interstitial:gated');
   });
 
-  it('purchaseRemoveAds skips future interstitials', async () => {
-    await purchaseRemoveAds();
-    expect(isAdsRemoved()).toBe(true);
-    clearAdLog();
-    const ok = await showInterstitial('win');
-    expect(ok).toBe(false);
-    expect(getAdLog()).toContain('interstitial:skipped:win');
+  it('rewarded grants in a browser and only when earned natively', async () => {
+    expect(await showRewarded('hint')).toBe(true);
+    (globalThis as { Ads?: unknown }).Ads = { showRewarded: async () => {} };
+    expect(await showRewarded('hint')).toBe(false);
+    (globalThis as { Ads?: unknown }).Ads = { showRewarded: async (cb: () => void) => cb() };
+    expect(await showRewarded('hint')).toBe(true);
   });
 });

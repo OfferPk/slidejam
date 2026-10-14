@@ -1,3 +1,8 @@
+## 0.2.0 (2026-10-14)
+- Capacitor Android app with signed CI builds; AdMob (test IDs) with gated, post-level interstitials only (no ad on restart or win)
+- How to play card, daily reward + challenge, Skin Shop (road themes, car paint), achievements + stats, level-1 coach, accessibility settings
+- Removed stub ad dialogs and the stub "Remove ads" button
+
 # Changelog
 
 ## Traffic level expansion — Levels 19–20 — 2026-09-30

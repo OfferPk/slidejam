@@ -1,0 +1,11 @@
+{
+  "appId": "com.offerpk.slidejam",
+  "appName": "SlideJam",
+  "webDir": "dist",
+  "android": {
+    "backgroundColor": "#2a1830"
+  },
+  "plugins": {
+    "AdMob": {}
+  }
+}

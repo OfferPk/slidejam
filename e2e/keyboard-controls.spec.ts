@@ -14,14 +14,14 @@ test('Ctrl+Z undoes a traffic slide and restores the target car position', async
   await expect(target).toContainText('columns 1 to 2');
   await board.focus();
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('status')).toHaveText('Selected target car 1 of 4');
+  await expect(page.locator('.toast[role="status"]')).toHaveText('Selected target car 1 of 4');
 
   await page.keyboard.press('ArrowRight');
-  await expect(page.getByRole('status')).toHaveText('Slid right');
+  await expect(page.locator('.toast[role="status"]')).toHaveText('Slid right');
   await expect(undo).toBeEnabled();
   await expect(target).toContainText('columns 2 to 3');
   await board.press('Control+z');
-  await expect(page.getByRole('status')).toHaveText('Undo');
+  await expect(page.locator('.toast[role="status"]')).toHaveText('Undo');
   await expect(undo).toBeDisabled();
   await expect(target).toContainText('columns 1 to 2');
 });
@@ -38,7 +38,7 @@ test('off-axis keyboard input explains the vehicle lane constraint', async ({ pa
   await page.keyboard.press('Enter');
   await page.keyboard.press('ArrowUp');
 
-  await expect(page.getByRole('status')).toHaveText(
+  await expect(page.locator('.toast[role="status"]')).toHaveText(
     'Use left or right to move this vehicle along its lane',
   );
 });

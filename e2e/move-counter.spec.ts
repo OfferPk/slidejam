@@ -8,7 +8,7 @@ test('move counter tracks legal slides, undo, and restart for the current attemp
     'canvas[aria-label="Level 1 traffic puzzle board with an exit on the right"]',
   );
   const count = page.locator('#move-count');
-  const status = page.getByRole('status');
+  const status = page.locator('.toast[role="status"]');
   await expect(count).toHaveText('Moves this attempt: 0');
 
   await board.focus();
@@ -30,7 +30,5 @@ test('move counter tracks legal slides, undo, and restart for the current attemp
   await page.getByRole('button', { name: 'Restart', exact: true }).click();
   const confirmation = page.getByRole('dialog', { name: 'Restart this level?' });
   await confirmation.getByRole('button', { name: 'Restart', exact: true }).click();
-  await page.getByRole('dialog', { name: 'Ad stub — Interstitial' })
-    .getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(count).toHaveText('Moves this attempt: 0');
 });

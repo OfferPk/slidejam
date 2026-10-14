@@ -36,7 +36,6 @@ test('normal progression live-plays Levels 18–20 and keeps Levels 21–50 hidd
   };
 
   const completeLevel = async () => {
-    await expect(page.getByRole('dialog', { name: 'Ad stub — Interstitial' })).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.getByRole('heading', { name: 'Target vehicle escaped!' })).toBeVisible();
   };

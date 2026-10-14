@@ -38,7 +38,6 @@ test('normal progression live-plays Levels 17–18 and confirms the 20-level cat
   };
 
   const completeLevel = async () => {
-    await expect(page.getByRole('dialog', { name: 'Ad stub — Interstitial' })).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.getByRole('heading', { name: 'Target vehicle escaped!' })).toBeVisible();
   };
@@ -75,7 +74,7 @@ test('normal progression live-plays Levels 17–18 and confirms the 20-level cat
   const level17 = page.getByRole('group', {
     name: 'Level 17 traffic puzzle board with an exit on the right',
   });
-  const status = page.getByRole('status');
+  const status = page.locator('.toast[role="status"]');
   const target17 = page.locator('#vehicle-descriptions li[data-vehicle-id="target-car"]');
   await expect(level17).toBeFocused();
   await expect(level17).toHaveAccessibleDescription(/EXIT on the right/);

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test('traffic level entry focuses a named board and exposes the target, bus, truck, and exit objective', async ({ page }) => {
   await page.goto('/');
-  const status = page.getByRole('status');
+  const status = page.locator('.toast[role="status"]');
   await expect(status).toHaveAttribute('aria-live', 'polite');
   await expect(status).toHaveAttribute('aria-atomic', 'true');
 
@@ -58,7 +58,7 @@ test('pointer dragging slides the target only along its lane and updates its acc
   await page.mouse.move(start.x + start.cell, start.y, { steps: 4 });
   await page.mouse.up();
 
-  await expect(page.getByRole('status')).toHaveText('Slid right');
+  await expect(page.locator('.toast[role="status"]')).toHaveText('Slid right');
   await expect(page.locator('#vehicle-descriptions li[data-vehicle-id="target-car"]'))
     .toHaveText('Red target car, moves only left or right along its lane, at row 3, columns 2 to 3.');
 });
@@ -68,7 +68,7 @@ test('explains blocked directions without moving and keeps perpendicular lane gu
   await page.getByRole('button', { name: 'Play', exact: true }).click();
 
   const target = page.locator('#vehicle-descriptions li[data-vehicle-id="target-car"]');
-  const status = page.getByRole('status');
+  const status = page.locator('.toast[role="status"]');
   const initialPosition = 'Red target car, moves only left or right along its lane, at row 3, columns 1 to 2.';
 
   await page.keyboard.press('Enter');

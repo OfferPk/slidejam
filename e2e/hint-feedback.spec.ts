@@ -11,6 +11,6 @@ test('a traffic hint spells out the suggested slide direction', async ({ page })
 
   await page.getByRole('button', { name: 'Hint', exact: true }).click();
 
-  await expect(page.getByRole('status')).toHaveText('Hint: slide left');
+  await expect(page.locator('.toast[role="status"]')).toHaveText('Hint: slide left');
   await expect(board).toBeVisible();
 });
