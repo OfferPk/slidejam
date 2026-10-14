@@ -99,6 +99,7 @@ export function mountApp(root: HTMLElement): void {
   };
 
   root.setAttribute('role', 'main');
+  root.setAttribute('aria-label', 'SlideJam puzzle game');
   root.append(el.home, el.levels, el.play, el.win, el.overlay, el.toast);
   el.toast.setAttribute('role', 'status');
   el.toast.setAttribute('aria-live', 'polite');
@@ -190,6 +191,7 @@ export function mountApp(root: HTMLElement): void {
     screen = s;
     for (const k of ['home', 'levels', 'play', 'win'] as const) {
       el[k].classList.toggle('active', k === s);
+      el[k].setAttribute('aria-hidden', String(k !== s));
     }
     cancelAnimationFrame(raf);
     if (s === 'home') renderHome();
@@ -223,6 +225,8 @@ export function mountApp(root: HTMLElement): void {
     el.home.append(hero);
 
     const actions = div('home-actions');
+    actions.setAttribute('role', 'group');
+    actions.setAttribute('aria-label', 'Main game actions');
     actions.append(
       button('Play', 'btn block', () => {
         startLevel(Math.min(persist.unlocked, LEVEL_COUNT));
@@ -269,6 +273,8 @@ export function mountApp(root: HTMLElement): void {
     progress.textContent = `Level ${unlockedLevel} unlocked · ${clearedSummary}`;
     el.levels.append(progress);
     const grid = div('level-grid');
+    grid.setAttribute('role', 'group');
+    grid.setAttribute('aria-label', 'Choose a level');
     for (let i = 1; i <= LEVEL_COUNT; i++) {
       const locked = i > unlockedLevel;
       const completed = i < unlockedLevel;
@@ -374,6 +380,8 @@ export function mountApp(root: HTMLElement): void {
     syncMoveCount();
 
     const tools = div('play-tools');
+    tools.setAttribute('role', 'group');
+    tools.setAttribute('aria-label', 'Puzzle controls');
     undoButton = button('Undo', 'btn secondary', () => doUndo());
     redoButton = button('Redo', 'btn secondary', () => void doRedo());
     tools.append(
